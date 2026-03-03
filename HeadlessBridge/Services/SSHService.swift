@@ -36,7 +36,7 @@ class SSHService: ObservableObject {
         
         // 執行指令並取得結果 (Citadel 0.12.x 回傳的是 ByteBuffer，需要轉為 String)
         let outputBuffer = try await client.executeCommand(command)
-        return String(buffer: outputBuffer)
+        return String(buffer: outputBuffer).trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
     // MARK: - Test SSH Connection
