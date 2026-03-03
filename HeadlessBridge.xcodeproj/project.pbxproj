@@ -1,0 +1,402 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0694013F81EEF2FEC2395435 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4391564D91499B69564D5567 /* SettingsView.swift */; };
+		1B9A3FAB7963AB5E398DC047 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA60F1555C6F58C6517BEFC6 /* Models.swift */; };
+		20CDBAC953C20620F4CD6E7C /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = 71404D65B04D700F17EF819B /* Citadel */; };
+		21F17757010B3D6F7D7B5EF3 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC843043B1019640315D6A2 /* HistoryView.swift */; };
+		21FEF9E2D82E0022AD468ACC /* Color+ConnectionMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0478AA7373592948EDE734B2 /* Color+ConnectionMode.swift */; };
+		3C32A80020DAA6BBFCCB0291 /* HeadlessBridgeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE82E9AE2E8C041FF15CA3F /* HeadlessBridgeApp.swift */; };
+		53FF611104A3685A81D18EA9 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57E4E644175975AB6BE91301 /* KeychainService.swift */; };
+		5A93565EC6AA6F14931CF09F /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38E5D1A477891E39758C66A /* ConnectionManager.swift */; };
+		7ADE3EC542925EBC1A7F9C39 /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CC6CDE43DE6EB1FD18E016 /* NetworkService.swift */; };
+		87AFFF76AB07A1E21D942FD0 /* SSHService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8E4627CFD5961EE04BCC3D3 /* SSHService.swift */; };
+		A454AF49BF6F023A9E6943C8 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 910D19814A422973E9444387 /* HomeView.swift */; };
+		ABA19AA90FD34BE79C129613 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93A0066D5A8479B931CE7285 /* ContentView.swift */; };
+		FF8C0B7A50E70B567B7C03C1 /* DiagnosticView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57C7307F410C3561BC9254AA /* DiagnosticView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0478AA7373592948EDE734B2 /* Color+ConnectionMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+ConnectionMode.swift"; sourceTree = "<group>"; };
+		4391564D91499B69564D5567 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		57C7307F410C3561BC9254AA /* DiagnosticView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticView.swift; sourceTree = "<group>"; };
+		57E4E644175975AB6BE91301 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
+		5A8B7132CB6940B736012CB8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		7EE82E9AE2E8C041FF15CA3F /* HeadlessBridgeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadlessBridgeApp.swift; sourceTree = "<group>"; };
+		86CC6CDE43DE6EB1FD18E016 /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
+		910D19814A422973E9444387 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		93A0066D5A8479B931CE7285 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		C8E4627CFD5961EE04BCC3D3 /* SSHService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHService.swift; sourceTree = "<group>"; };
+		D38E5D1A477891E39758C66A /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
+		DA60F1555C6F58C6517BEFC6 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		DFC843043B1019640315D6A2 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		E989C63EC576A832FC6350C2 /* HeadlessBridge.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HeadlessBridge.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FDA02E4598AA807DC19EE5BD /* HeadlessBridge.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HeadlessBridge.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AE135BA75667699C9AF7CCBC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				20CDBAC953C20620F4CD6E7C /* Citadel in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		539D5AFD4EE8B3692CDD0EB3 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				D38E5D1A477891E39758C66A /* ConnectionManager.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		769BD416A06AB222F87959AE /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				57E4E644175975AB6BE91301 /* KeychainService.swift */,
+				86CC6CDE43DE6EB1FD18E016 /* NetworkService.swift */,
+				C8E4627CFD5961EE04BCC3D3 /* SSHService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		810CFDF951A0C9273BD80E24 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				DA60F1555C6F58C6517BEFC6 /* Models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A98DAE272729485693182ACD /* HeadlessBridge */ = {
+			isa = PBXGroup;
+			children = (
+				FDA02E4598AA807DC19EE5BD /* HeadlessBridge.entitlements */,
+				7EE82E9AE2E8C041FF15CA3F /* HeadlessBridgeApp.swift */,
+				5A8B7132CB6940B736012CB8 /* Info.plist */,
+				810CFDF951A0C9273BD80E24 /* Models */,
+				769BD416A06AB222F87959AE /* Services */,
+				539D5AFD4EE8B3692CDD0EB3 /* ViewModels */,
+				DDD18AC09EFFCC8B35EE787F /* Views */,
+			);
+			path = HeadlessBridge;
+			sourceTree = "<group>";
+		};
+		DDD18AC09EFFCC8B35EE787F /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				0478AA7373592948EDE734B2 /* Color+ConnectionMode.swift */,
+				93A0066D5A8479B931CE7285 /* ContentView.swift */,
+				57C7307F410C3561BC9254AA /* DiagnosticView.swift */,
+				DFC843043B1019640315D6A2 /* HistoryView.swift */,
+				910D19814A422973E9444387 /* HomeView.swift */,
+				4391564D91499B69564D5567 /* SettingsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		E8A106556329182E444B33C9 = {
+			isa = PBXGroup;
+			children = (
+				A98DAE272729485693182ACD /* HeadlessBridge */,
+				FE957E25C0901DD080DCA11A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		FE957E25C0901DD080DCA11A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E989C63EC576A832FC6350C2 /* HeadlessBridge.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		18F48C1F673CD6225EAEFA62 /* HeadlessBridge */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7F4A03EF7842ACE1280B45A7 /* Build configuration list for PBXNativeTarget "HeadlessBridge" */;
+			buildPhases = (
+				5653AB13B015AED3B9654038 /* Sources */,
+				AE135BA75667699C9AF7CCBC /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HeadlessBridge;
+			packageProductDependencies = (
+				71404D65B04D700F17EF819B /* Citadel */,
+			);
+			productName = HeadlessBridge;
+			productReference = E989C63EC576A832FC6350C2 /* HeadlessBridge.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F897CC6B8B31FADD62A3E446 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = 7393B5893C85072717EF58E6 /* Build configuration list for PBXProject "HeadlessBridge" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = E8A106556329182E444B33C9;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				719C38CE89B6B185E036814C /* XCRemoteSwiftPackageReference "Citadel" */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				18F48C1F673CD6225EAEFA62 /* HeadlessBridge */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5653AB13B015AED3B9654038 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				21FEF9E2D82E0022AD468ACC /* Color+ConnectionMode.swift in Sources */,
+				5A93565EC6AA6F14931CF09F /* ConnectionManager.swift in Sources */,
+				ABA19AA90FD34BE79C129613 /* ContentView.swift in Sources */,
+				FF8C0B7A50E70B567B7C03C1 /* DiagnosticView.swift in Sources */,
+				3C32A80020DAA6BBFCCB0291 /* HeadlessBridgeApp.swift in Sources */,
+				21F17757010B3D6F7D7B5EF3 /* HistoryView.swift in Sources */,
+				A454AF49BF6F023A9E6943C8 /* HomeView.swift in Sources */,
+				53FF611104A3685A81D18EA9 /* KeychainService.swift in Sources */,
+				1B9A3FAB7963AB5E398DC047 /* Models.swift in Sources */,
+				7ADE3EC542925EBC1A7F9C39 /* NetworkService.swift in Sources */,
+				87AFFF76AB07A1E21D942FD0 /* SSHService.swift in Sources */,
+				0694013F81EEF2FEC2395435 /* SettingsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		5A62A7660D8D3A674D2A0925 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		64FDB0581A5283333B68518F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = HeadlessBridge/HeadlessBridge.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = HeadlessBridge/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryanchang.HeadlessBridge;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Debug;
+		};
+		7D49A900AE76F5BC6970C02B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A91F8354AB77FB903A64A412 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = HeadlessBridge/HeadlessBridge.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = HeadlessBridge/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryanchang.HeadlessBridge;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7393B5893C85072717EF58E6 /* Build configuration list for PBXProject "HeadlessBridge" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7D49A900AE76F5BC6970C02B /* Debug */,
+				5A62A7660D8D3A674D2A0925 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7F4A03EF7842ACE1280B45A7 /* Build configuration list for PBXNativeTarget "HeadlessBridge" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				64FDB0581A5283333B68518F /* Debug */,
+				A91F8354AB77FB903A64A412 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		719C38CE89B6B185E036814C /* XCRemoteSwiftPackageReference "Citadel" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/orlandos-nl/Citadel.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		71404D65B04D700F17EF819B /* Citadel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 719C38CE89B6B185E036814C /* XCRemoteSwiftPackageReference "Citadel" */;
+			productName = Citadel;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = F897CC6B8B31FADD62A3E446 /* Project object */;
+}
