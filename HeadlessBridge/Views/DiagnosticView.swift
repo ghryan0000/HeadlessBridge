@@ -3,6 +3,8 @@ import SwiftUI
 // MARK: - Diagnostic View
 struct DiagnosticView: View {
     @EnvironmentObject var manager: ConnectionManager
+    @Binding var selectedSidebarItem: SidebarItem?
+    @Binding var selectedTab: SidebarItem
     
     var body: some View {
         NavigationStack {
@@ -37,7 +39,7 @@ struct DiagnosticView: View {
                     
                     // Results
                     if !manager.diagnosticResults.isEmpty {
-                        DiagnosticResultsCard()
+                        DiagnosticResultsCard(selectedSidebarItem: $selectedSidebarItem, selectedTab: $selectedTab)
                     } else {
                         EmptyDiagnosticView()
                     }
@@ -55,6 +57,8 @@ struct DiagnosticView: View {
 // MARK: - Diagnostic Results Card
 struct DiagnosticResultsCard: View {
     @EnvironmentObject var manager: ConnectionManager
+    @Binding var selectedSidebarItem: SidebarItem?
+    @Binding var selectedTab: SidebarItem
     
     var allPassed: Bool {
         manager.diagnosticResults.allSatisfy { $0.status == .pass }
@@ -74,7 +78,9 @@ struct DiagnosticResultsCard: View {
             }
             
             ForEach(manager.diagnosticResults) { result in
-                DiagnosticRow(result: result)
+                DiagnosticRow(result: result, 
+                              selectedSidebarItem: $selectedSidebarItem, 
+                              selectedTab: $selectedTab)
                 if result.id != manager.diagnosticResults.last?.id {
                     Divider()
                 }
@@ -91,6 +97,9 @@ struct DiagnosticResultsCard: View {
 
 struct DiagnosticRow: View {
     let result: DiagnosticResult
+    @Binding var selectedSidebarItem: SidebarItem?
+    @Binding var selectedTab: SidebarItem
+    @Environment(\.horizontalSizeClass) var sizeClass
     
     var color: Color {
         switch result.status {
@@ -120,6 +129,23 @@ struct DiagnosticRow: View {
             if result.status == .checking {
                 ProgressView()
                     .scaleEffect(0.8)
+            } else if result.status == .fail || result.status == .warning {
+                Button {
+                    // 導向設定頁面
+                    if sizeClass == .regular {
+                        selectedSidebarItem = .settings
+                    } else {
+                        selectedTab = .settings
+                    }
+                } label: {
+                    Text("如何修復？")
+                        .font(.caption2.bold())
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(color.opacity(0.1))
+                        .foregroundStyle(color)
+                        .clipShape(Capsule())
+                }
             }
         }
     }

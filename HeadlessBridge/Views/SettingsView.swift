@@ -6,8 +6,14 @@ struct SettingsView: View {
     @State private var sshPassword: String = ""
     @State private var showPassword: Bool = false
     @State private var showSaved: Bool = false
+    @State private var showHelp: HelpType? = nil
     
     private let keychain = KeychainService.shared
+    
+    enum HelpType: Identifiable {
+        case hostname, username, uuid
+        var id: Int { hashValue }
+    }
     
     var body: some View {
         NavigationStack {
@@ -20,7 +26,15 @@ struct SettingsView: View {
                             .multilineTextAlignment(.trailing)
                     }
                     
-                    LabeledContent("Hostname") {
+                    HStack {
+                        Text("Hostname")
+                        Button { showHelp = .hostname } label: {
+                            Image(systemName: "questionmark.circle")
+                                .foregroundStyle(.blue)
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Spacer()
                         TextField("Mac-mini.local", text: $manager.config.hostname)
                             .multilineTextAlignment(.trailing)
                             .autocorrectionDisabled()
@@ -34,7 +48,15 @@ struct SettingsView: View {
                 
                 // MARK: SSH 設定
                 Section("SSH 設定") {
-                    LabeledContent("使用者名稱") {
+                    HStack {
+                        Text("使用者名稱")
+                        Button { showHelp = .username } label: {
+                            Image(systemName: "questionmark.circle")
+                                .foregroundStyle(.blue)
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Spacer()
                         TextField("ryanchang", text: $manager.config.sshUser)
                             .multilineTextAlignment(.trailing)
                             .autocorrectionDisabled()
@@ -77,7 +99,15 @@ struct SettingsView: View {
                             .keyboardType(.numberPad)
                     }
                     
-                    LabeledContent("iPad UUID") {
+                    HStack {
+                        Text("iPad UUID")
+                        Button { showHelp = .uuid } label: {
+                            Image(systemName: "questionmark.circle")
+                                .foregroundStyle(.blue)
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Spacer()
                         TextField("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
                                   text: $manager.config.iPadUUID)
                             .multilineTextAlignment(.trailing)
@@ -139,6 +169,9 @@ struct SettingsView: View {
             .onAppear {
                 sshPassword = keychain.load(for: "ssh_password_\(manager.config.id)") ?? ""
             }
+            .sheet(item: $showHelp) { type in
+                HelpSheet(type: type)
+            }
         }
     }
     
@@ -162,30 +195,116 @@ struct SettingsView: View {
         guard !password.isEmpty else { return }
         
         do {
-            let result = try await SSHService.shared.executeCommand(
-                host: manager.config.hostname,
-                port: manager.config.sshPort,
-                user: manager.config.sshUser,
-                password: password,
-                command: "betterdisplaycli get -sidecarList 2>/dev/null"
-            )
+            // 嘗試多個路徑尋找 betterdisplaycli
+            let commands = [
+                "/opt/homebrew/bin/betterdisplaycli get -sidecarList 2>/dev/null",
+                "/usr/local/bin/betterdisplaycli get -sidecarList 2>/dev/null",
+                "betterdisplaycli get -sidecarList 2>/dev/null",
+                "system_profiler SPSidecarReporter | grep 'Identifier:'" // 備用方案
+            ]
             
-            // 解析 UUID（格式：iPad名稱, UUID）
+            var result = ""
+            for cmd in commands {
+                if let output = try await SSHService.shared.executeCommand(
+                    host: manager.config.hostname,
+                    port: manager.config.sshPort,
+                    user: manager.config.sshUser,
+                    password: password,
+                    command: cmd
+                ), !output.isEmpty {
+                    result = output
+                    break
+                }
+            }
+            
+            guard !result.isEmpty else { return }
+            
+            // 解析 UUID（格式 1：iPad名稱, UUID / 格式 2：Identifier: UUID）
             let lines = result.components(separatedBy: "\n")
             for line in lines {
-                let parts = line.components(separatedBy: ", ")
-                if parts.count >= 2 {
-                    let uuid = parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
-                    if uuid.count == 36 {
-                        await MainActor.run {
-                            manager.config.iPadUUID = uuid
+                // 處理 BetterDisplay 格式
+                if line.contains(", ") {
+                    let parts = line.components(separatedBy: ", ")
+                    if parts.count >= 2 {
+                        let uuid = parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
+                        if uuid.count == 36 {
+                            updateUUID(uuid)
+                            return
                         }
-                        break
+                    }
+                }
+                // 處理 system_profiler 格式
+                if line.contains("Identifier:") {
+                    let parts = line.components(separatedBy: "Identifier: ")
+                    if parts.count >= 2 {
+                        let uuid = parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
+                        if uuid.count == 36 {
+                            updateUUID(uuid)
+                            return
+                        }
                     }
                 }
             }
         } catch {
             print("Failed to fetch UUID: \(error)")
+        }
+    }
+    
+    private func updateUUID(_ uuid: String) {
+        Task { @MainActor in
+            manager.config.iPadUUID = uuid
+        }
+    }
+}
+
+// MARK: - Help Sheet
+struct HelpSheet: View {
+    let type: SettingsView.HelpType
+    @Environment(\.dismiss) var dismiss
+    
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    switch type {
+                    case .hostname:
+                        HelpContent(title: "Hostname 是什麼？",
+                                    content: "這是你的 Mac mini 在區域網路上的身分證。你可以前往「系統設定 > 一般 > 共享」，在視窗最下方找到「電腦可以透過以下方式存取：Mac-mini.local」。通常建議填入 XXXXX.local。")
+                    case .username:
+                        HelpContent(title: "如何找到使用者名稱？",
+                                    content: "這不是你的全名，而是系統短名稱。請在 Mac 的終端機執行 `whoami`，回傳的小寫文字就是你的使用者名稱。或是前往「系統設定 > 使用者與群組」，點選頭像後的「進階選項」查看「帳號名稱」。")
+                    case .uuid:
+                        HelpContent(title: "iPad UUID 是什麼？",
+                                    content: "這是 Sidecar 用來識別連線目標的代碼。你可以點擊「從 SSH 自動取得」，或在 Mac 終端機執行 `system_profiler SPSidecarReporter | grep 'Identifier:'` 來手動獲取。")
+                    }
+                    
+                    Spacer()
+                }
+                .padding()
+            }
+            .navigationTitle("幫助說明")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("關閉") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+}
+
+struct HelpContent: View {
+    let title: String
+    let content: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline)
+            Text(content)
+                .font(.body)
+                .foregroundStyle(.secondary)
         }
     }
 }

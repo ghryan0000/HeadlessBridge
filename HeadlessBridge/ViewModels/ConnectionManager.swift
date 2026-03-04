@@ -186,7 +186,7 @@ class ConnectionManager: ObservableObject {
         // 非同步發送中斷指令（不等待結果）
         Task {
             do {
-                try await sshService.executeCommand(
+                _ = try await sshService.executeCommand(
                     host: config.hostname,
                     port: config.sshPort,
                     user: config.sshUser,

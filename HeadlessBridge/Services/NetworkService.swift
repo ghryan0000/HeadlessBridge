@@ -59,20 +59,25 @@ class NetworkService: ObservableObject {
             let nwPort = NWEndpoint.Port(integerLiteral: port)
             let connection = NWConnection(host: endpoint, port: nwPort, using: .tcp)
             
-            var resolved = false
+            let lock = NSLock()
+            var isResolved = false
+            
+            let resolve: (Bool) -> Void = { result in
+                lock.lock()
+                defer { lock.unlock() }
+                if !isResolved {
+                    isResolved = true
+                    connection.cancel()
+                    continuation.resume(returning: result)
+                }
+            }
             
             connection.stateUpdateHandler = { state in
-                guard !resolved else { return }
                 switch state {
                 case .ready:
-                    resolved = true
-                    connection.cancel()
-                    continuation.resume(returning: true)
+                    resolve(true)
                 case .failed, .cancelled:
-                    if !resolved {
-                        resolved = true
-                        continuation.resume(returning: false)
-                    }
+                    resolve(false)
                 default:
                     break
                 }
@@ -81,11 +86,7 @@ class NetworkService: ObservableObject {
             connection.start(queue: .global())
             
             DispatchQueue.global().asyncAfter(deadline: .now() + timeout) {
-                if !resolved {
-                    resolved = true
-                    connection.cancel()
-                    continuation.resume(returning: false)
-                }
+                resolve(false)
             }
         }
     }
