@@ -205,13 +205,15 @@ struct SettingsView: View {
             
             var result = ""
             for cmd in commands {
-                if let output = try await SSHService.shared.executeCommand(
+                let output = try await SSHService.shared.executeCommand(
                     host: manager.config.hostname,
                     port: manager.config.sshPort,
                     user: manager.config.sshUser,
                     password: password,
                     command: cmd
-                ), !output.isEmpty {
+                )
+                
+                if !output.isEmpty {
                     result = output
                     break
                 }
