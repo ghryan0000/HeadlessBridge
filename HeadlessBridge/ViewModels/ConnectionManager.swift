@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import AudioToolbox
 
 // MARK: - Connection Manager
 @MainActor
@@ -146,6 +147,9 @@ class ConnectionManager: ObservableObject {
         status = .connected(mode)
         connectedAt = Date()
         startConnectionTimer()
+        
+        // Play success sound
+        AudioServicesPlaySystemSound(1016) // tweet sound
     }
     
     // MARK: - Handle Failure with Retry

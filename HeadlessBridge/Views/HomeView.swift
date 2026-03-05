@@ -67,9 +67,17 @@ struct StatusCard: View {
                     .frame(width: 100, height: 100)
                 
                 if manager.status.isLoading {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .tint(statusColor)
+                    if #available(iOS 17.0, macOS 14.0, *) {
+                        Image(systemName: "network")
+                            .font(.system(size: 44))
+                            .foregroundStyle(statusColor)
+                            .symbolEffect(.pulse)
+                            .symbolEffect(.variableColor.iterative)
+                    } else {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                            .tint(statusColor)
+                    }
                 } else {
                     Image(systemName: statusIcon)
                         .font(.system(size: 44))
@@ -128,30 +136,29 @@ struct ConnectButton: View {
     
     var body: some View {
         Button {
-            if manager.status.isConnected {
+            if manager.status.isConnected || manager.status.isLoading {
                 manager.disconnect()
             } else {
                 Task { await manager.smartConnect() }
             }
         } label: {
             HStack(spacing: 12) {
-                Image(systemName: manager.status.isConnected ? "stop.circle.fill" : "play.circle.fill")
+                Image(systemName: (manager.status.isConnected || manager.status.isLoading) ? "stop.circle.fill" : "play.circle.fill")
                     .font(.title2)
                 
-                Text(manager.status.isConnected ? "中斷連線" : "智慧連線")
+                Text(manager.status.isConnected ? "中斷連線" : (manager.status.isLoading ? "取消連線" : "智慧連線"))
                     .font(.title3.bold())
             }
             .frame(maxWidth: .infinity)
             .frame(height: 60)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(manager.status.isConnected ? Color.red : Color.blue)
+                    .fill((manager.status.isConnected || manager.status.isLoading) ? Color.red : Color.blue)
             )
             .foregroundStyle(.white)
         }
-        .disabled(manager.status.isLoading)
-        .opacity(manager.status.isLoading ? 0.6 : 1.0)
         .animation(.easeInOut, value: manager.status.isConnected)
+        .animation(.easeInOut, value: manager.status.isLoading)
     }
 }
 
