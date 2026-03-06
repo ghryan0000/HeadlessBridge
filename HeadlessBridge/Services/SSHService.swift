@@ -62,9 +62,10 @@ class SSHService: ObservableObject {
     
     // MARK: - Trigger Sidecar
     func triggerSidecar(config: MacConfig, password: String) async throws {
+        // 使用 (指令 &) 讓 Mac 在背景執行等待，讓 SSH 任務能立刻回傳成功並結束。
+        // 加入 > /dev/null 2>&1 以及 exit 0 確保 Citadel 不會因為後台任務而報 TTY 錯誤。
         let command = """
-        open -a 'BetterDisplay' ; sleep 10 ; \
-        curl 'http://localhost:\(config.betterDisplayPort)/set?sidecarConnected=on&specifier=\(config.iPadUUID)'
+        open -a 'BetterDisplay' && (sleep 2; curl 'http://localhost:\(config.betterDisplayPort)/set?sidecarConnected=on&specifier=\(config.iPadUUID)') > /dev/null 2>&1 & exit 0
         """
         
         let result = try await executeCommand(
@@ -78,19 +79,86 @@ class SSHService: ObservableObject {
         print("Sidecar trigger result: \(result)")
     }
     
-    // MARK: - Check BetterDisplay
-    func checkBetterDisplay(config: MacConfig, password: String) async -> Bool {
+    // MARK: - Check BetterDisplay Reachability
+    /// 僅檢查 BetterDisplay HTTP Server 是否在運行
+    func isBetterDisplayReachable(config: MacConfig, password: String) async -> Bool {
         do {
             let result = try await executeCommand(
                 host: config.hostname,
                 port: config.sshPort,
                 user: config.sshUser,
                 password: password,
-                command: "curl -s http://localhost:\(config.betterDisplayPort)/get?displays 2>/dev/null && echo 'OK' || echo 'FAIL'"
+                command: "curl -s http://localhost:\(config.betterDisplayPort)/get?displays 2>/dev/null && echo 'BD_OK' || echo 'BD_FAIL'"
             )
-            return result.contains("OK")
+            print("DEBUG isBetterDisplayReachable raw: [\(result)]")
+            return result.contains("BD_OK")
         } catch {
+            print("DEBUG isBetterDisplayReachable error: \(error)")
             return false
+        }
+    }
+    
+    // MARK: - Check Sidecar Connection Status
+    /// 檢查 Mac 的 BetterDisplay 是否正在 Sidecar 鏡像
+    /// - Returns: true = 確定在鏡像, false = 確定沒在鏡像, nil = 無法判斷
+    func isSidecarConnected(config: MacConfig, password: String) async -> Bool? {
+        do {
+            // 同時查詢 specifier 和全局狀態
+            let rawResult = try await executeCommand(
+                host: config.hostname,
+                port: config.sshPort,
+                user: config.sshUser,
+                password: password,
+                command: "curl -s 'http://localhost:\(config.betterDisplayPort)/get?sidecarConnected&specifier=\(config.iPadUUID)' 2>/dev/null; echo '---SEPARATOR---'; curl -s 'http://localhost:\(config.betterDisplayPort)/get?sidecarConnected' 2>/dev/null"
+            )
+            
+            print("DEBUG isSidecarConnected RAW RESPONSE: [\(rawResult)]")
+            
+            if rawResult.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+               rawResult == "---SEPARATOR---" {
+                print("DEBUG: Empty response from BetterDisplay API")
+                return nil
+            }
+            
+            let parts = rawResult.components(separatedBy: "---SEPARATOR---")
+            var hasConnected = false
+            var hasDisconnected = false
+            
+            // 掃描所有段落，收集結果
+            for part in parts {
+                let trimmed = part.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                if trimmed.isEmpty { continue }
+                
+                let isOn = trimmed == "on" || trimmed == "1" || trimmed == "true" || trimmed == "yes"
+                    || trimmed.contains(": 1") || trimmed.contains(":1")
+                    || trimmed.contains("\"on\"") || trimmed.contains(": true") || trimmed.contains(":true")
+                
+                let isOff = trimmed == "off" || trimmed == "0" || trimmed == "false" || trimmed == "no"
+                    || trimmed.contains(": 0") || trimmed.contains(":0")
+                    || trimmed.contains("\"off\"") || trimmed.contains(": false") || trimmed.contains(":false")
+                
+                if isOn { hasConnected = true }
+                if isOff { hasDisconnected = true }
+                
+                print("DEBUG: Part [\(trimmed)] → isOn=\(isOn), isOff=\(isOff)")
+            }
+            
+            // 優先判斷：任何一段說 on 就是 on（全局查詢比 specifier 更可靠）
+            if hasConnected {
+                print("DEBUG: Sidecar is CONNECTED (at least one query returned on)")
+                return true
+            }
+            if hasDisconnected {
+                print("DEBUG: Sidecar is DISCONNECTED (all queries returned off)")
+                return false
+            }
+            
+            print("DEBUG: Could not parse BetterDisplay response, returning nil")
+            return nil
+            
+        } catch {
+            print("DEBUG isSidecarConnected SSH error: \(error.localizedDescription)")
+            return nil
         }
     }
 }

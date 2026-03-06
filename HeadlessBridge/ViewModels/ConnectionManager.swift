@@ -20,21 +20,27 @@ class ConnectionManager: ObservableObject {
     private let sshService = SSHService.shared
     private let networkService = NetworkService.shared
     private let keychain = KeychainService.shared
-    private var connectionTimer: Timer?
+    private var connectionTask: Task<Void, Never>?
     private var retryCount = 0
     private let maxRetries = 3
+    private var isSyncing = false  // 防止重複同步
     
     // MARK: - Init
     init() {
         loadConfig()
         loadHistory()
+        loadStatus()  // ⚡ 立刻從磁碟還原狀態，在 async sync 執行前 UI 就顯示正確
+        print("DEBUG: Init completed. Status after loadStatus: \(status)")
     }
     
     // MARK: - Smart Connect
-    func smartConnect() async {
+    func smartConnect() {
         guard !status.isLoading else { return }
         retryCount = 0
-        await performConnection()
+        connectionTask?.cancel()
+        connectionTask = Task {
+            await performConnection()
+        }
     }
     
     private func performConnection() async {
@@ -54,7 +60,14 @@ class ConnectionManager: ObservableObject {
         await connect(mode: mode)
     }
     
-    private func connect(mode: ConnectionMode) async {
+    func connect(mode: ConnectionMode) {
+        connectionTask?.cancel()
+        connectionTask = Task {
+            await performConnect(mode: mode)
+        }
+    }
+    
+    private func performConnect(mode: ConnectionMode) async {
         // .auto 在此解析為具體模式，避免遞迴
         let resolvedMode: ConnectionMode
         if mode == .auto {
@@ -141,15 +154,11 @@ class ConnectionManager: ObservableObject {
     }
     
     // MARK: - Handle Success
-    /// 連線成功時只啟動計時器，不記錄歷史。
-    /// 歷史在 `disconnect()` 時記錄一次，帶實際使用時間。
     private func handleSuccess(mode: ConnectionMode) {
         status = .connected(mode)
         connectedAt = Date()
-        startConnectionTimer()
-        
-        // Play success sound
-        AudioServicesPlaySystemSound(1016) // tweet sound
+        saveStatus(mode: mode)  // 💾 立刻持久化
+        AudioServicesPlaySystemSound(1016)
     }
     
     // MARK: - Handle Failure with Retry
@@ -160,26 +169,20 @@ class ConnectionManager: ObservableObject {
         fallbackMode: ConnectionMode,
         password: String
     ) async {
-        retryCount += 1
+        // 如果任務已被取消，不進行任何動作
+        if Task.isCancelled { return }
         
-        if retryCount <= maxRetries {
-            // 重試同一模式
-            status = .retrying(retryCount)
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-            await connect(mode: currentMode)
-        } else if retryCount == maxRetries + 1 {
-            // 重試用盡，嘗試 fallback（只做一次）
-            status = .connecting("切換到 \(fallbackMode.rawValue)...")
-            await connect(mode: fallbackMode)
-        } else {
-            // fallback 也失敗
-            status = .failed(error.localizedDescription)
-            addHistory(mode: selectedMode, success: false)
-        }
+        // 嚴格手動模式：失敗後直接顯示錯誤，不進行自動重試或切換模式
+        status = .failed(error.localizedDescription)
+        addHistory(mode: currentMode, success: false)
     }
     
     // MARK: - Disconnect
     func disconnect() {
+        connectionTask?.cancel()
+        connectionTask = nil
+        retryCount = 0
+        
         let password = keychain.load(for: "ssh_password_\(config.id)") ?? ""
         
         // 記錄歷史（帶實際使用時間）
@@ -200,7 +203,7 @@ class ConnectionManager: ObservableObject {
             } catch {}
         }
         
-        stopConnectionTimer()
+        clearStatus()   // 🗑️ 清除持久化狀態
         status = .disconnected
         connectedAt = nil
     }
@@ -240,19 +243,47 @@ class ConnectionManager: ObservableObject {
         
         // 4. 檢查 BetterDisplay
         await addDiagnostic(item: "BetterDisplay", status: .checking, message: "確認中...")
-        let bdOk = await sshService.checkBetterDisplay(config: config, password: password)
+        let bdOk = await sshService.isBetterDisplayReachable(config: config, password: password)
         updateDiagnostic(item: "BetterDisplay",
                          status: bdOk ? .pass : .fail,
                          message: bdOk ? "HTTP server 運作正常" : "BetterDisplay 未啟動，請確認 App 已開啟")
         
-        // 5. 檢查 iPad UUID
+        // 5. 檢查 Sidecar 狀態（顯示原始 API 回應）
+        await addDiagnostic(item: "Sidecar 狀態", status: .checking, message: "查詢中...")
+        do {
+            let specifierCheck = try await sshService.executeCommand(
+                host: config.hostname,
+                port: config.sshPort,
+                user: config.sshUser,
+                password: password,
+                command: "curl -s 'http://localhost:\(config.betterDisplayPort)/get?sidecarConnected&specifier=\(config.iPadUUID)' 2>/dev/null"
+            )
+            let globalCheck = try await sshService.executeCommand(
+                host: config.hostname,
+                port: config.sshPort,
+                user: config.sshUser,
+                password: password,
+                command: "curl -s 'http://localhost:\(config.betterDisplayPort)/get?sidecarConnected' 2>/dev/null"
+            )
+            let sidecarOk = await sshService.isSidecarConnected(config: config, password: password)
+            let statusText = sidecarOk == true ? "連線中" : (sidecarOk == false ? "未連線" : "無法判斷")
+            updateDiagnostic(item: "Sidecar 狀態",
+                             status: sidecarOk == true ? .pass : (sidecarOk == false ? .warning : .fail),
+                             message: "\(statusText) | 指定: \(specifierCheck.prefix(20)) | 全局: \(globalCheck.prefix(20))")
+        } catch {
+            updateDiagnostic(item: "Sidecar 狀態",
+                             status: .fail,
+                             message: "查詢失敗: \(error.localizedDescription)")
+        }
+        
+        // 6. 檢查 iPad UUID
         await addDiagnostic(item: "iPad UUID", status: .checking, message: "確認中...")
         let uuidValid = config.iPadUUID.count == 36
         updateDiagnostic(item: "iPad UUID",
                          status: uuidValid ? .pass : .fail,
                          message: uuidValid ? "UUID 格式正確" : "UUID 格式錯誤，請重新設定")
         
-        // 6. 檢查 Tailscale（若有設定）
+        // 7. 檢查 Tailscale（若有設定）
         if !config.tailscaleIP.isEmpty {
             await addDiagnostic(item: "Tailscale", status: .checking, message: "確認中...")
             let tsOk = environment.isTailscaleActive
@@ -276,34 +307,62 @@ class ConnectionManager: ObservableObject {
         }
     }
     
-    // MARK: - Connection Timer
-    private func startConnectionTimer() {
-        connectionTimer?.invalidate()
-        connectionTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                await self?.checkConnectionHealth()
-            }
+    // MARK: - Connection Monitoring (Passive Sync)
+    /// 僅在從背景切換回前景時執行一次，確保 UI 狀態與 Mac 實際狀況同步。
+    /// 具備「無狀態恢復」功能：即便 App 重啟，只要 Mac 端還在鏡像，App 就會自動恢復為「已連線」。
+    private func syncConnectionStatus() async {
+        // 防止重複執行
+        guard !isSyncing else {
+            print("DEBUG: Sync already in progress, skipping.")
+            return
         }
-    }
-    
-    private func stopConnectionTimer() {
-        connectionTimer?.invalidate()
-        connectionTimer = nil
-    }
-    
-    private func checkConnectionHealth() async {
-        guard status.isConnected else { return }
+        // 如果正在連線中，不干擾
+        guard !status.isLoading else {
+            print("DEBUG: Connection in progress, skipping sync.")
+            return
+        }
+        
+        isSyncing = true
+        defer { isSyncing = false }
+        
+        print("DEBUG: Executing stateless connection sync... Current status: \(status)")
+        
+        // 等待 2 秒，確保 iPadOS 從背景回到前景後的網路介面已經完全恢復
+        try? await Task.sleep(nanoseconds: 2_000_000_000)
+        
         let password = keychain.load(for: "ssh_password_\(config.id)") ?? ""
-        let healthy = await sshService.testConnection(
-            host: config.hostname,
-            port: config.sshPort,
-            user: config.sshUser,
-            password: password
-        )
-        if !healthy {
-            status = .disconnected
-            connectedAt = nil
-            stopConnectionTimer()
+        
+        // 檢查 Mac 端的 Sidecar 狀態
+        let sidecarStatus = await sshService.isSidecarConnected(config: config, password: password)
+        print("DEBUG: Sync result - sidecarStatus: \(String(describing: sidecarStatus))")
+        
+        switch sidecarStatus {
+        case .some(true):
+            // Mac 端正在鏡像
+            if !status.isConnected {
+                print("DEBUG: Mac is mirroring but App shows \(status). Adopting connection...")
+                status = .connected(.wireless)
+                connectedAt = Date()
+                saveStatus(mode: .wireless)
+                AudioServicesPlaySystemSound(1016)
+            } else {
+                print("DEBUG: Status matches Mac (Connected).")
+            }
+            
+        case .some(false):
+            // Mac 端確定沒有鏡像
+            if status.isConnected {
+                print("DEBUG: Mac is NOT mirroring. Resetting to .disconnected.")
+                clearStatus()
+                status = .disconnected
+                connectedAt = nil
+            } else {
+                print("DEBUG: Status matches Mac (Disconnected).")
+            }
+            
+        case .none:
+            // 網路錯誤或無法連達 Mac
+            print("DEBUG: Mac unreachable during sync. Preserving current status: \(status)")
         }
     }
     
@@ -359,15 +418,64 @@ class ConnectionManager: ObservableObject {
         }
     }
     
+    // MARK: - Status Persistence
+    /// 連線成功時將模式存入磁碟，確保 App 重啟後能立刻還原 UI 狀態
+    private func saveStatus(mode: ConnectionMode) {
+        UserDefaults.standard.set(mode.rawValue, forKey: "last_connected_mode")
+        print("DEBUG: Saved status mode: \(mode.rawValue)")
+    }
+    
+    /// App 啟動時從磁碟還原上次的連線狀態
+    private func loadStatus() {
+        guard let rawMode = UserDefaults.standard.string(forKey: "last_connected_mode"),
+              let mode = ConnectionMode(rawValue: rawMode) else {
+            print("DEBUG: No saved status found, starting as disconnected.")
+            return
+        }
+        // 立刻設定為「已連線」，讓 UI 在 async sync 執行前就顯示正確
+        status = .connected(mode)
+        print("DEBUG: Restored status from disk: .connected(\(mode.rawValue))")
+    }
+    
+    /// 中斷連線時清除磁碟上的狀態
+    private func clearStatus() {
+        UserDefaults.standard.removeObject(forKey: "last_connected_mode")
+        print("DEBUG: Cleared saved status.")
+    }
+    
     // MARK: - Clear Config (with proper Keychain cleanup)
-    /// 清除設定並正確刪除舊的 Keychain 密碼
     func clearAllSettings() {
         let oldConfigID = config.id
         keychain.delete(for: "ssh_password_\(oldConfigID)")
         config = MacConfig.default
-        // 默認 config 的 id 可能相同，但多刪一次無害
         keychain.delete(for: "ssh_password_\(config.id)")
+        clearStatus()
         saveConfig()
+    }
+    
+    // MARK: - Scene Phase Handling
+    func handleScenePhase(_ phase: ScenePhase) {
+        print("DEBUG: ScenePhase changed to: \(phase)")
+        switch phase {
+        case .background:
+            print("DEBUG: App backgrounded, keeping active tasks alive...")
+            
+        case .active:
+            print("DEBUG: App became active. Current status: \(status)")
+            
+            // ① 立刻執行同步（不等待環境偵測）
+            Task {
+                await syncConnectionStatus()
+            }
+            
+            // ② 環境偵測獨立執行，不阻塞同步
+            Task {
+                environment = await networkService.detectEnvironment(config: config)
+            }
+            
+        default:
+            break
+        }
     }
 }
 

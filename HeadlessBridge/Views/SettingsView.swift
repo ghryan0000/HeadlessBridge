@@ -7,6 +7,8 @@ struct SettingsView: View {
     @State private var showPassword: Bool = false
     @State private var showSaved: Bool = false
     @State private var showHelp: HelpType? = nil
+    @State private var isFetchingUUID: Bool = false
+    @State private var fetchUUIDError: String?
     
     private let keychain = KeychainService.shared
     
@@ -22,7 +24,7 @@ struct SettingsView: View {
                 // MARK: Mac mini 基本設定
                 Section {
                     LabeledContent("名稱") {
-                        TextField("Mac mini", text: $manager.config.name)
+                        TextField("例如: Mac mini", text: $manager.config.name)
                             .multilineTextAlignment(.trailing)
                     }
                     
@@ -35,7 +37,7 @@ struct SettingsView: View {
                         .buttonStyle(.plain)
                         
                         Spacer()
-                        TextField("Mac-mini.local", text: $manager.config.hostname)
+                        TextField("例如: Mac-mini.local", text: $manager.config.hostname)
                             .multilineTextAlignment(.trailing)
                             .autocorrectionDisabled()
                             .textInputAutocapitalization(.never)
@@ -57,14 +59,14 @@ struct SettingsView: View {
                         .buttonStyle(.plain)
                         
                         Spacer()
-                        TextField("ryanchang", text: $manager.config.sshUser)
+                        TextField("例如: ryanchang", text: $manager.config.sshUser)
                             .multilineTextAlignment(.trailing)
                             .autocorrectionDisabled()
                             .textInputAutocapitalization(.never)
                     }
                     
                     LabeledContent("Port") {
-                        TextField("22", value: $manager.config.sshPort, format: .number)
+                        TextField("例如: 22", value: $manager.config.sshPort, format: .number)
                             .multilineTextAlignment(.trailing)
                             .keyboardType(.numberPad)
                     }
@@ -74,9 +76,9 @@ struct SettingsView: View {
                         Spacer()
                         Group {
                             if showPassword {
-                                TextField("密碼", text: $sshPassword)
+                                TextField("例如: 123456", text: $sshPassword)
                             } else {
-                                SecureField("密碼", text: $sshPassword)
+                                SecureField("例如: 123456", text: $sshPassword)
                             }
                         }
                         .multilineTextAlignment(.trailing)
@@ -94,7 +96,7 @@ struct SettingsView: View {
                 // MARK: BetterDisplay 設定
                 Section("BetterDisplay 設定") {
                     LabeledContent("HTTP Port") {
-                        TextField("55777", value: $manager.config.betterDisplayPort, format: .number)
+                        TextField("例如: 55777", value: $manager.config.betterDisplayPort, format: .number)
                             .multilineTextAlignment(.trailing)
                             .keyboardType(.numberPad)
                     }
@@ -116,16 +118,34 @@ struct SettingsView: View {
                             .font(.caption.monospaced())
                     }
                     
-                    Button("從 SSH 自動取得 UUID") {
-                        Task { await fetchUUID() }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Button {
+                            Task { await fetchUUID() }
+                        } label: {
+                            HStack {
+                                if isFetchingUUID {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                        .padding(.trailing, 4)
+                                }
+                                Text(isFetchingUUID ? "取得中..." : "從 SSH 自動取得 UUID")
+                            }
+                        }
+                        .foregroundStyle(.blue)
+                        .disabled(isFetchingUUID)
+                        
+                        if let error = fetchUUIDError {
+                            Text(error)
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                        }
                     }
-                    .foregroundStyle(.blue)
                 }
                 
                 // MARK: Tailscale 設定
                 Section {
                     LabeledContent("Tailscale IP") {
-                        TextField("100.x.x.x", text: $manager.config.tailscaleIP)
+                        TextField("例如: 100.x.x.x", text: $manager.config.tailscaleIP)
                             .multilineTextAlignment(.trailing)
                             .autocorrectionDisabled()
                             .textInputAutocapitalization(.never)
@@ -191,8 +211,15 @@ struct SettingsView: View {
     
     // MARK: - Fetch UUID via SSH
     private func fetchUUID() async {
+        isFetchingUUID = true
+        fetchUUIDError = nil
+        defer { isFetchingUUID = false }
+        
         let password = keychain.load(for: "ssh_password_\(manager.config.id)") ?? sshPassword
-        guard !password.isEmpty else { return }
+        guard !password.isEmpty else {
+            fetchUUIDError = "請先輸入並儲存 SSH 密碼"
+            return
+        }
         
         do {
             // 嘗試多個路徑尋找 betterdisplaycli
@@ -247,8 +274,11 @@ struct SettingsView: View {
                     }
                 }
             }
+            
+            fetchUUIDError = "找不到 UUID，請確認 iPad 是否已準備就緒"
         } catch {
             print("Failed to fetch UUID: \(error)")
+            fetchUUIDError = "連線失敗: \(error.localizedDescription)"
         }
     }
     
@@ -277,7 +307,7 @@ struct HelpSheet: View {
                                     content: "這不是你的全名，而是系統短名稱。請在 Mac 的終端機執行 `whoami`，回傳的小寫文字就是你的使用者名稱。或是前往「系統設定 > 使用者與群組」，點選頭像後的「進階選項」查看「帳號名稱」。")
                     case .uuid:
                         HelpContent(title: "iPad UUID 是什麼？",
-                                    content: "這是 Sidecar 用來識別連線目標的代碼。你可以點擊「從 SSH 自動取得」，或在 Mac 終端機執行 `system_profiler SPSidecarReporter | grep 'Identifier:'` 來手動獲取。")
+                                    content: "這是 Sidecar 用來精準識別這台 iPad 的專屬代碼 (Identifier)。當連線時，系統必須確認是要連到哪一台 iPad。\n\n💡 發生『連線失敗』的常見原因：\n1. 密碼或帳號錯誤 (Error 4: 權限被拒)\n2. Mac 與 iPad 不在同一個 Wi-Fi 網域內\n3. Mac 與 iPad 從未透過 USB 線配對信任過\n\n建議你先確認 SSH 帳號密碼是否正確再試一次。你也可以在 Mac 終端機執行 `system_profiler SPSidecarReporter | grep 'Identifier:'` 來手動獲取 UUID。")
                     }
                     
                     Spacer()

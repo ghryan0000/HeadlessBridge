@@ -13,9 +13,6 @@ struct HomeView: View {
                     // MARK: Status Card
                     StatusCard()
                     
-                    // MARK: Connect Button
-                    ConnectButton()
-                    
                     // MARK: Mode Selector
                     ModeSelectorCard()
                     
@@ -139,7 +136,7 @@ struct ConnectButton: View {
             if manager.status.isConnected || manager.status.isLoading {
                 manager.disconnect()
             } else {
-                Task { await manager.smartConnect() }
+                manager.smartConnect()
             }
         } label: {
             HStack(spacing: 12) {
@@ -173,10 +170,16 @@ struct ModeSelectorCard: View {
                 .foregroundStyle(.secondary)
             
             HStack(spacing: 8) {
-                ForEach(ConnectionMode.allCases, id: \.self) { mode in
+                ForEach(ConnectionMode.allCases.filter { $0 != .auto }, id: \.self) { mode in
                     ModeButton(mode: mode)
                 }
             }
+            
+            Divider()
+                .padding(.vertical, 8)
+            
+            // Integrated Connect Button
+            ConnectButton()
         }
         .padding(16)
         .background(
@@ -199,6 +202,8 @@ struct ModeButton: View {
             withAnimation(.spring(response: 0.3)) {
                 manager.selectedMode = mode
             }
+            // 立即啟動連線程序
+            manager.connect(mode: mode)
         } label: {
             VStack(spacing: 6) {
                 Image(systemName: mode.icon)
@@ -327,9 +332,9 @@ struct QuickActionsCard: View {
                     color: .green
                 ) {
                     manager.disconnect()
-                    Task {
-                        try? await Task.sleep(nanoseconds: 1_000_000_000)
-                        await manager.smartConnect()
+                    // 些微延遲後啟動，確保中斷指令已發出
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        manager.smartConnect()
                     }
                 }
             }
