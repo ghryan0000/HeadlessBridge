@@ -19,13 +19,12 @@
 		87AFFF76AB07A1E21D942FD0 /* SSHService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8E4627CFD5961EE04BCC3D3 /* SSHService.swift */; };
 		A454AF49BF6F023A9E6943C8 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 910D19814A422973E9444387 /* HomeView.swift */; };
 		ABA19AA90FD34BE79C129613 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93A0066D5A8479B931CE7285 /* ContentView.swift */; };
-		FF8C0B7A50E70B567B7C03C1 /* DiagnosticView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57C7307F410C3561BC9254AA /* DiagnosticView.swift */; };
+		D48FE2F42F5B02D30040D74E /* ToolboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D48FE2F32F5B02D30040D74E /* ToolboxView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0478AA7373592948EDE734B2 /* Color+ConnectionMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+ConnectionMode.swift"; sourceTree = "<group>"; };
 		4391564D91499B69564D5567 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		57C7307F410C3561BC9254AA /* DiagnosticView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticView.swift; sourceTree = "<group>"; };
 		57E4E644175975AB6BE91301 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		5A8B7132CB6940B736012CB8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		7EE82E9AE2E8C041FF15CA3F /* HeadlessBridgeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadlessBridgeApp.swift; sourceTree = "<group>"; };
@@ -34,6 +33,7 @@
 		93A0066D5A8479B931CE7285 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		C8E4627CFD5961EE04BCC3D3 /* SSHService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHService.swift; sourceTree = "<group>"; };
 		D38E5D1A477891E39758C66A /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
+		D48FE2F32F5B02D30040D74E /* ToolboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolboxView.swift; sourceTree = "<group>"; };
 		DA60F1555C6F58C6517BEFC6 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		DFC843043B1019640315D6A2 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		E989C63EC576A832FC6350C2 /* HeadlessBridge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HeadlessBridge.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -95,9 +95,9 @@
 		DDD18AC09EFFCC8B35EE787F /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				D48FE2F32F5B02D30040D74E /* ToolboxView.swift */,
 				0478AA7373592948EDE734B2 /* Color+ConnectionMode.swift */,
 				93A0066D5A8479B931CE7285 /* ContentView.swift */,
-				57C7307F410C3561BC9254AA /* DiagnosticView.swift */,
 				DFC843043B1019640315D6A2 /* HistoryView.swift */,
 				910D19814A422973E9444387 /* HomeView.swift */,
 				4391564D91499B69564D5567 /* SettingsView.swift */,
@@ -180,8 +180,8 @@
 			files = (
 				21FEF9E2D82E0022AD468ACC /* Color+ConnectionMode.swift in Sources */,
 				5A93565EC6AA6F14931CF09F /* ConnectionManager.swift in Sources */,
+				D48FE2F42F5B02D30040D74E /* ToolboxView.swift in Sources */,
 				ABA19AA90FD34BE79C129613 /* ContentView.swift in Sources */,
-				FF8C0B7A50E70B567B7C03C1 /* DiagnosticView.swift in Sources */,
 				3C32A80020DAA6BBFCCB0291 /* HeadlessBridgeApp.swift in Sources */,
 				21F17757010B3D6F7D7B5EF3 /* HistoryView.swift in Sources */,
 				A454AF49BF6F023A9E6943C8 /* HomeView.swift in Sources */,

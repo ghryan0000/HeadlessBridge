@@ -15,15 +15,24 @@ class ConnectionManager: ObservableObject {
     @Published var selectedMode: ConnectionMode = .auto
     @Published var isRunningDiagnostic: Bool = false
     @Published var connectedAt: Date? = nil
+    @Published private var timerTick: Int = 0  // 每秒觸發 UI 重繪（超輕量）
     
     // MARK: - Private
     private let sshService = SSHService.shared
     private let networkService = NetworkService.shared
     private let keychain = KeychainService.shared
     private var connectionTask: Task<Void, Never>?
+    private var displayTimer: Timer?          // 1Hz 碼表計時器
     private var retryCount = 0
     private let maxRetries = 3
     private var isSyncing = false  // 防止重複同步
+
+    // MARK: - Cumulative Connection Time
+    /// 從 UserDefaults 讀取/寫入跨 session 累計秒數
+    private var totalAccumulatedSeconds: Double {
+        get { UserDefaults.standard.double(forKey: "total_connection_seconds") }
+        set { UserDefaults.standard.set(newValue, forKey: "total_connection_seconds") }
+    }
     
     // MARK: - Init
     init() {
@@ -36,45 +45,41 @@ class ConnectionManager: ObservableObject {
     // MARK: - Smart Connect
     func smartConnect() {
         guard !status.isLoading else { return }
-        retryCount = 0
-        connectionTask?.cancel()
-        connectionTask = Task {
-            await performConnection()
-        }
+        selectedMode = .auto
+        reconnect()
     }
     
-    private func performConnection() async {
-        // Step 1: 偵測環境
-        status = .detecting
-        environment = await networkService.detectEnvironment(config: config)
-        
-        // Step 2: 決定連線模式（解析 .auto 為具體模式）
-        let mode: ConnectionMode
-        if selectedMode == .auto {
-            mode = environment.recommendedMode
-        } else {
-            mode = selectedMode
+    // MARK: - Reconnect (Improved)
+    func reconnect() {
+        connectionTask?.cancel()
+        connectionTask = Task {
+            // Step 1: Detect Environment
+            status = .detecting
+            environment = await networkService.detectEnvironment(config: config)
+            
+            // Step 2: Determine Mode
+            let modeForConnection: ConnectionMode
+            if selectedMode == .auto {
+                modeForConnection = environment.recommendedMode
+            } else {
+                modeForConnection = selectedMode
+            }
+            
+            // Step 3: Execute Connection
+            await performConnect(mode: modeForConnection)
         }
-        
-        // Step 3: 執行連線
-        await connect(mode: mode)
     }
     
     func connect(mode: ConnectionMode) {
-        connectionTask?.cancel()
-        connectionTask = Task {
-            await performConnect(mode: mode)
-        }
+        // Force selection update
+        selectedMode = mode
+        reconnect()
     }
     
     private func performConnect(mode: ConnectionMode) async {
-        // .auto 在此解析為具體模式，避免遞迴
-        let resolvedMode: ConnectionMode
-        if mode == .auto {
-            resolvedMode = environment.recommendedMode
-        } else {
-            resolvedMode = mode
-        }
+        // Ensure we handle .auto resolution here if needed, 
+        // but reconnect() already resolved it.
+        let resolvedMode = mode
         
         let password = keychain.load(for: "ssh_password_\(config.id)") ?? ""
         
@@ -94,6 +99,17 @@ class ConnectionManager: ObservableObject {
     // MARK: - Wired Sidecar
     private func connectWiredSidecar(password: String) async {
         status = .connecting("連接有線 Sidecar 中...")
+        
+        // 嚴格檢查 USB 連線狀態：如果未插線，直接報錯，不允許假裝有線連線
+        guard environment.isUSBConnected else {
+            await handleFailure(
+                error: ConnectionError.usbNotConnected,
+                currentMode: .wired,
+                fallbackMode: .wireless,
+                password: password
+            )
+            return
+        }
         
         do {
             try await sshService.triggerSidecar(config: config, password: password)
@@ -157,7 +173,8 @@ class ConnectionManager: ObservableObject {
     private func handleSuccess(mode: ConnectionMode) {
         status = .connected(mode)
         connectedAt = Date()
-        saveStatus(mode: mode)  // 💾 立刻持久化
+        startDurationTimer()         // ▶ 啟動 1Hz 碼表
+        saveStatus(mode: mode)
         AudioServicesPlaySystemSound(1016)
     }
     
@@ -203,7 +220,13 @@ class ConnectionManager: ObservableObject {
             } catch {}
         }
         
-        clearStatus()   // 🗑️ 清除持久化狀態
+        // 累積本次 session 時間並停止計時器
+        if let start = connectedAt {
+            totalAccumulatedSeconds += Date().timeIntervalSince(start)
+        }
+        stopDurationTimer()
+        totalAccumulatedSeconds = 0   // 斷線後清零累計
+        clearStatus()
         status = .disconnected
         connectedAt = nil
     }
@@ -266,10 +289,28 @@ class ConnectionManager: ObservableObject {
                 command: "curl -s 'http://localhost:\(config.betterDisplayPort)/get?sidecarConnected' 2>/dev/null"
             )
             let sidecarOk = await sshService.isSidecarConnected(config: config, password: password)
-            let statusText = sidecarOk == true ? "連線中" : (sidecarOk == false ? "未連線" : "無法判斷")
+            let statusText = sidecarOk == true ? "連線中" : (sidecarOk == false ? "未連線 (閒置正常)" : "狀態不明")
+            
+            // 將 raw API 轉為白話文
+            let translate: (String) -> String = { raw in
+                let r = raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                if r == "on" || r == "1" || r == "true" { return "開啟" }
+                if r == "off" || r == "0" || r == "false" { return "關閉" }
+                // Avoid "查詢失敗" if we are actually connected according to sidecarOk
+                if sidecarOk == true { return "已開啟" }
+                if r.contains("fail") || r.isEmpty { return "無外部連線" }
+                return r
+            }
+            
+            let specText = translate(specifierCheck)
+            let globText = translate(globalCheck)
+            
+            let detailMessage = "這台 iPad: \(specText) | Mac 總體: \(globText)"
+            let finalMessage = sidecarOk == false ? "\(statusText)\n尚未啟動連線為預期狀態\n\(detailMessage)" : "\(statusText)\n\(detailMessage)"
+            
             updateDiagnostic(item: "Sidecar 狀態",
                              status: sidecarOk == true ? .pass : (sidecarOk == false ? .warning : .fail),
-                             message: "\(statusText) | 指定: \(specifierCheck.prefix(20)) | 全局: \(globalCheck.prefix(20))")
+                             message: finalMessage)
         } catch {
             updateDiagnostic(item: "Sidecar 狀態",
                              status: .fail,
@@ -343,6 +384,7 @@ class ConnectionManager: ObservableObject {
                 print("DEBUG: Mac is mirroring but App shows \(status). Adopting connection...")
                 status = .connected(.wireless)
                 connectedAt = Date()
+                startDurationTimer()  // 同步恢復時也啟動計時
                 saveStatus(mode: .wireless)
                 AudioServicesPlaySystemSound(1016)
             } else {
@@ -366,14 +408,32 @@ class ConnectionManager: ObservableObject {
         }
     }
     
-    // MARK: - Connection Duration
+    // MARK: - Duration Timer（1Hz，超輕量）
+    private func startDurationTimer() {
+        displayTimer?.invalidate()
+        displayTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.timerTick += 1  // 觸發 @ObservableObject 重繪，本身不做任何運算
+            }
+        }
+    }
+
+    private func stopDurationTimer() {
+        displayTimer?.invalidate()
+        displayTimer = nil
+    }
+
+    // MARK: - Connection Duration（累計）
     var connectionDuration: String {
-        guard let connectedAt else { return "" }
-        let duration = Date().timeIntervalSince(connectedAt)
-        let hours = Int(duration) / 3600
-        let minutes = Int(duration) % 3600 / 60
-        let seconds = Int(duration) % 60
-        if hours > 0 { return "\(hours):\(String(format: "%02d", minutes)):\(String(format: "%02d", seconds))" }
+        let _ = timerTick   // 讀取此值讓 SwiftUI 訂閱到每秒更新
+        let sessionSeconds = connectedAt.map { Date().timeIntervalSince($0) } ?? 0
+        let total = totalAccumulatedSeconds + sessionSeconds
+        let hours   = Int(total) / 3600
+        let minutes = Int(total) % 3600 / 60
+        let seconds = Int(total) % 60
+        if hours > 0 {
+            return "\(hours):\(String(format: "%02d", minutes)):\(String(format: "%02d", seconds))"
+        }
         return "\(String(format: "%02d", minutes)):\(String(format: "%02d", seconds))"
     }
     
@@ -485,6 +545,7 @@ enum ConnectionError: LocalizedError {
     case tailscaleNotActive
     case betterDisplayNotRunning
     case configIncomplete
+    case usbNotConnected
     
     var errorDescription: String? {
         switch self {
@@ -496,6 +557,8 @@ enum ConnectionError: LocalizedError {
             return "BetterDisplay 未執行"
         case .configIncomplete:
             return "設定不完整，請先完成設定"
+        case .usbNotConnected:
+            return "USB 連接線未接上，無法使用有線 Sidecar"
         }
     }
 }

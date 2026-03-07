@@ -2,25 +2,23 @@ import SwiftUI
 
 // MARK: - Navigation Item
 enum SidebarItem: String, CaseIterable, Identifiable {
-    case home, diagnostic, history, settings
+    case home, settings, toolbox
     
     var id: String { self.rawValue }
     
     var title: String {
         switch self {
-        case .home: return "連線"
-        case .diagnostic: return "診斷"
-        case .history: return "記錄"
-        case .settings: return "設定"
+        case .home: return "連線至 Mac"
+        case .settings: return "設定連線參數"
+        case .toolbox: return "工具箱"
         }
     }
     
     var icon: String {
         switch self {
         case .home: return "display"
-        case .diagnostic: return "stethoscope"
-        case .history: return "clock.arrow.circlepath"
         case .settings: return "gearshape.fill"
+        case .toolbox: return "archivebox.fill"
         }
     }
     
@@ -28,9 +26,8 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     func destination(for item: SidebarItem, sidebarSelection: Binding<SidebarItem?>, tabSelection: Binding<SidebarItem>) -> some View {
         switch item {
         case .home: HomeView()
-        case .diagnostic: DiagnosticView(selectedSidebarItem: sidebarSelection, selectedTab: tabSelection)
-        case .history: HistoryView()
         case .settings: SettingsView()
+        case .toolbox: ToolboxView()
         }
     }
 }
@@ -52,7 +49,6 @@ struct ContentView: View {
                         Label(item.title, systemImage: item.icon)
                     }
                 }
-                .navigationTitle("HeadlessBridge")
                 .navigationSplitViewColumnWidth(min: 200, ideal: 240, max: 400)
             } detail: {
                 if let item = selectedSidebarItem {

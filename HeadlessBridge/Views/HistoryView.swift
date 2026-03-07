@@ -5,38 +5,36 @@ struct HistoryView: View {
     @EnvironmentObject var manager: ConnectionManager
     
     var body: some View {
-        NavigationStack {
-            Group {
-                if manager.history.isEmpty {
-                    EmptyHistoryView()
-                } else {
-                    List {
-                        // Stats Summary
-                        Section {
-                            StatsRow()
-                        }
-                        
-                        // History List
-                        Section("連線記錄") {
-                            ForEach(manager.history) { entry in
-                                HistoryRow(entry: entry)
-                            }
+        Group {
+            if manager.history.isEmpty {
+                EmptyHistoryView()
+            } else {
+                List {
+                    // Stats Summary
+                    Section {
+                        StatsRow()
+                    }
+                    
+                    // History List
+                    Section("連線記錄") {
+                        ForEach(manager.history) { entry in
+                            HistoryRow(entry: entry)
                         }
                     }
                 }
             }
-            .navigationTitle("連線記錄")
-            .toolbar {
-                if !manager.history.isEmpty {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button(role: .destructive) {
-                            withAnimation {
-                                manager.history = []
-                            }
-                        } label: {
-                            Text("清除")
-                                .foregroundStyle(.red)
+        }
+        .navigationTitle("連線記錄")
+        .toolbar {
+            if !manager.history.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(role: .destructive) {
+                        withAnimation {
+                            manager.history = []
                         }
+                    } label: {
+                        Text("清除")
+                            .foregroundStyle(.red)
                     }
                 }
             }

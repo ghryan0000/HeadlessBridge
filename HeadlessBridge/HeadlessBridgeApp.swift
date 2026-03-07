@@ -10,7 +10,7 @@ struct HeadlessBridgeApp: App {
             ContentView()
                 .environmentObject(connectionManager)
         }
-        .onChange(of: scenePhase) { newPhase in
+        .onChange(of: scenePhase) { _, newPhase in
             connectionManager.handleScenePhase(newPhase)
         }
     }
