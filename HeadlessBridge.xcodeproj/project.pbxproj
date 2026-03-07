@@ -15,11 +15,12 @@
 		3C32A80020DAA6BBFCCB0291 /* HeadlessBridgeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE82E9AE2E8C041FF15CA3F /* HeadlessBridgeApp.swift */; };
 		53FF611104A3685A81D18EA9 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57E4E644175975AB6BE91301 /* KeychainService.swift */; };
 		5A93565EC6AA6F14931CF09F /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38E5D1A477891E39758C66A /* ConnectionManager.swift */; };
+		642DB960FCD548D843326E9C /* ToolboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3DA07BE99D083B2D3C7167F /* ToolboxView.swift */; };
 		7ADE3EC542925EBC1A7F9C39 /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CC6CDE43DE6EB1FD18E016 /* NetworkService.swift */; };
 		87AFFF76AB07A1E21D942FD0 /* SSHService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8E4627CFD5961EE04BCC3D3 /* SSHService.swift */; };
 		A454AF49BF6F023A9E6943C8 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 910D19814A422973E9444387 /* HomeView.swift */; };
 		ABA19AA90FD34BE79C129613 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93A0066D5A8479B931CE7285 /* ContentView.swift */; };
-		D48FE2F42F5B02D30040D74E /* ToolboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D48FE2F32F5B02D30040D74E /* ToolboxView.swift */; };
+		EB7CBC1A53D60B7EF3DB4EC3 /* LiquidGlassComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFF3756725AA6F03F89A315A /* LiquidGlassComponents.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,13 +32,14 @@
 		86CC6CDE43DE6EB1FD18E016 /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
 		910D19814A422973E9444387 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		93A0066D5A8479B931CE7285 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		C3DA07BE99D083B2D3C7167F /* ToolboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolboxView.swift; sourceTree = "<group>"; };
 		C8E4627CFD5961EE04BCC3D3 /* SSHService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHService.swift; sourceTree = "<group>"; };
 		D38E5D1A477891E39758C66A /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
-		D48FE2F32F5B02D30040D74E /* ToolboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolboxView.swift; sourceTree = "<group>"; };
 		DA60F1555C6F58C6517BEFC6 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		DFC843043B1019640315D6A2 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		E989C63EC576A832FC6350C2 /* HeadlessBridge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HeadlessBridge.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FDA02E4598AA807DC19EE5BD /* HeadlessBridge.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HeadlessBridge.entitlements; sourceTree = "<group>"; };
+		FFF3756725AA6F03F89A315A /* LiquidGlassComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassComponents.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,12 +97,13 @@
 		DDD18AC09EFFCC8B35EE787F /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				D48FE2F32F5B02D30040D74E /* ToolboxView.swift */,
 				0478AA7373592948EDE734B2 /* Color+ConnectionMode.swift */,
 				93A0066D5A8479B931CE7285 /* ContentView.swift */,
 				DFC843043B1019640315D6A2 /* HistoryView.swift */,
 				910D19814A422973E9444387 /* HomeView.swift */,
+				FFF3756725AA6F03F89A315A /* LiquidGlassComponents.swift */,
 				4391564D91499B69564D5567 /* SettingsView.swift */,
+				C3DA07BE99D083B2D3C7167F /* ToolboxView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -150,7 +153,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2620;
+				LastUpgradeCheck = 1500;
 			};
 			buildConfigurationList = 7393B5893C85072717EF58E6 /* Build configuration list for PBXProject "HeadlessBridge" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -180,16 +183,17 @@
 			files = (
 				21FEF9E2D82E0022AD468ACC /* Color+ConnectionMode.swift in Sources */,
 				5A93565EC6AA6F14931CF09F /* ConnectionManager.swift in Sources */,
-				D48FE2F42F5B02D30040D74E /* ToolboxView.swift in Sources */,
 				ABA19AA90FD34BE79C129613 /* ContentView.swift in Sources */,
 				3C32A80020DAA6BBFCCB0291 /* HeadlessBridgeApp.swift in Sources */,
 				21F17757010B3D6F7D7B5EF3 /* HistoryView.swift in Sources */,
 				A454AF49BF6F023A9E6943C8 /* HomeView.swift in Sources */,
 				53FF611104A3685A81D18EA9 /* KeychainService.swift in Sources */,
+				EB7CBC1A53D60B7EF3DB4EC3 /* LiquidGlassComponents.swift in Sources */,
 				1B9A3FAB7963AB5E398DC047 /* Models.swift in Sources */,
 				7ADE3EC542925EBC1A7F9C39 /* NetworkService.swift in Sources */,
 				87AFFF76AB07A1E21D942FD0 /* SSHService.swift in Sources */,
 				0694013F81EEF2FEC2395435 /* SettingsView.swift in Sources */,
+				642DB960FCD548D843326E9C /* ToolboxView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -231,10 +235,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 587A48X9LK;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -248,7 +250,6 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -262,6 +263,7 @@
 				CODE_SIGN_ENTITLEMENTS = HeadlessBridge/HeadlessBridge.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 587A48X9LK;
 				INFOPLIST_FILE = HeadlessBridge/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -310,10 +312,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 587A48X9LK;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -334,7 +334,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -348,6 +347,7 @@
 				CODE_SIGN_ENTITLEMENTS = HeadlessBridge/HeadlessBridge.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 587A48X9LK;
 				INFOPLIST_FILE = HeadlessBridge/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

@@ -23,13 +23,25 @@ struct ToolboxView: View {
                         }
                     }
                     .padding(.vertical, 4)
-                }
-                
-                Section {
-                    TroubleshootingGuideCard()
-                        .listRowInsets(EdgeInsets())
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
+                    
+                    NavigationLink {
+                        TroubleshootingDetailsView()
+                    } label: {
+                        Label {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("故障排除指南")
+                                    .font(.headline)
+                                Text("常見連線問題與排解步驟")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "wrench.and.screwdriver")
+                                .foregroundStyle(.orange)
+                                .font(.title3)
+                        }
+                    }
+                    .padding(.vertical, 4)
                 }
                 
                 Section(header: Text("即將推出")) {
@@ -50,7 +62,6 @@ struct ToolboxView: View {
                     .padding(.vertical, 4)
                 }
             }
-            .navigationTitle("工具箱")
         }
     }
 }
@@ -59,10 +70,8 @@ struct ToolboxView: View {
     ToolboxView()
 }
 
-// MARK: - Troubleshooting Guide
-struct TroubleshootingGuideCard: View {
-    @State private var isExpanded = false
-    
+// MARK: - Troubleshooting Details View
+struct TroubleshootingDetailsView: View {
     let guides: [(String, String, String)] = [
         ("SSH 連線失敗", "key.fill", "確認 Mac mini 系統設定 > 共享 > 遠端登入已開啟，並確認帳號密碼正確"),
         ("BetterDisplay 未回應", "display", "確認 BetterDisplay App 在 Mac mini 上已啟動並出現在選單列"),
@@ -72,58 +81,21 @@ struct TroubleshootingGuideCard: View {
     ]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Button {
-                withAnimation(.spring(response: 0.3)) {
-                    isExpanded.toggle()
-                }
-            } label: {
-                HStack {
-                    Label {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("故障排除指南")
-                                .font(.headline)
-                                .foregroundStyle(.primary)
-                            Text("常見連線問題與排解步驟")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    } icon: {
-                        Image(systemName: "wrench.and.screwdriver")
-                            .foregroundStyle(.orange)
-                            .font(.title3)
-                    }
-                    Spacer()
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+        List(guides, id: \.0) { guide in
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: guide.1)
+                    .foregroundStyle(.orange)
+                    .frame(width: 24)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(guide.0)
+                        .font(.subheadline.bold())
+                    Text(guide.2)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
-            .buttonStyle(.plain)
-            
-            if isExpanded {
-                ForEach(guides, id: \.0) { guide in
-                    HStack(alignment: .top, spacing: 12) {
-                        Image(systemName: guide.1)
-                            .foregroundStyle(.orange)
-                            .frame(width: 24)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(guide.0)
-                                .font(.subheadline.bold())
-                            Text(guide.2)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    if guide.0 != guides.last?.0 {
-                        Divider()
-                    }
-                }
-            }
+            .padding(.vertical, 4)
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
-        )
+        .navigationTitle("故障排除指南")
     }
 }

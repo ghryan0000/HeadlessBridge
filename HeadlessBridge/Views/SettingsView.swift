@@ -185,7 +185,6 @@ struct SettingsView: View {
                     }
                 }
             }
-            .navigationTitle("設定")
             .onAppear {
                 sshPassword = keychain.load(for: "ssh_password_\(manager.config.id)") ?? ""
             }

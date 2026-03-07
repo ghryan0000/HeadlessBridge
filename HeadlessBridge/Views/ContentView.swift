@@ -39,37 +39,171 @@ struct ContentView: View {
     
     @State private var selectedSidebarItem: SidebarItem? = .home
     @State private var selectedTab = SidebarItem.home
+    @State private var columnVisibility = NavigationSplitViewVisibility.all
     
     var body: some View {
-        if sizeClass == .regular {
-            // iPad Sidebar Layout
-            NavigationSplitView {
-                List(SidebarItem.allCases, selection: $selectedSidebarItem) { item in
-                    NavigationLink(value: item) {
-                        Label(item.title, systemImage: item.icon)
+        ZStack(alignment: .top) {
+            if sizeClass == .regular {
+                // iPad Layout with Split View + Floating Pill
+                NavigationSplitView(columnVisibility: $columnVisibility) {
+                    SidebarContent(selectedItem: $selectedSidebarItem, columnVisibility: $columnVisibility)
+                        .navigationSplitViewColumnWidth(min: 250, ideal: 280, max: 350)
+                } detail: {
+                    ZStack(alignment: .top) {
+                        if let item = selectedSidebarItem {
+                            item.destination(for: item, sidebarSelection: $selectedSidebarItem, tabSelection: $selectedTab)
+                                .safeAreaInset(edge: .top) {
+                                    Color.clear.frame(height: columnVisibility == .detailOnly ? 140 : 20)
+                                }
+                                .ignoresSafeArea(.container, edges: .top)
+                        } else {
+                            Text("請從側邊欄選擇功能")
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        // Apple Podcasts Style Centered Navigation Pill (Only shows when sidebar is hidden)
+                        if columnVisibility == .detailOnly {
+                            HStack {
+                                Spacer()
+                                NavigationPill(
+                                    selectedItem: Binding(
+                                        get: { selectedSidebarItem ?? .home },
+                                        set: { selectedSidebarItem = $0 }
+                                    ),
+                                    columnVisibility: $columnVisibility
+                                )
+                                Spacer()
+                            }
+                            .padding(.top, 0)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                        }
                     }
                 }
-                .navigationSplitViewColumnWidth(min: 200, ideal: 240, max: 400)
-            } detail: {
-                if let item = selectedSidebarItem {
-                    item.destination(for: item, sidebarSelection: $selectedSidebarItem, tabSelection: $selectedTab)
-                } else {
-                    Text("請從側邊欄選擇功能")
-                        .foregroundStyle(.secondary)
+            } else {
+                // iPhone TabView Layout
+                TabView(selection: $selectedTab) {
+                    ForEach(SidebarItem.allCases) { item in
+                        item.destination(for: item, sidebarSelection: $selectedSidebarItem, tabSelection: $selectedTab)
+                            .tabItem {
+                                Label(item.title, systemImage: item.icon)
+                            }
+                            .tag(item)
+                    }
                 }
+                .tint(.blue)
             }
-        } else {
-            // iPhone TabView Layout
-            TabView(selection: $selectedTab) {
-                ForEach(SidebarItem.allCases) { item in
-                    item.destination(for: item, sidebarSelection: $selectedSidebarItem, tabSelection: $selectedTab)
-                        .tabItem {
-                            Label(item.title, systemImage: item.icon)
-                        }
-                        .tag(item)
-                }
-            }
-            .tint(.blue)
         }
+    }
+}
+
+// MARK: - Sidebar Content
+struct SidebarContent: View {
+    @Binding var selectedItem: SidebarItem?
+    @Binding var columnVisibility: NavigationSplitViewVisibility
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Header: Removed custom toggle, using system sidebar button
+            
+            // Menu items moved up
+            
+            // Main List with Podcasts Style selection
+            List(SidebarItem.allCases, selection: $selectedItem) { item in
+                HStack(spacing: 12) {
+                    Image(systemName: item.icon)
+                        .font(.system(size: 20))
+                    Text(item.title)
+                        .font(.system(size: 17, weight: .medium))
+                    Spacer()
+                }
+                .podcastsSidebarStyle(isSelected: selectedItem == item)
+                .listRowInsets(EdgeInsets(top: 2, leading: 10, bottom: 2, trailing: 10))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+                .onTapGesture {
+                    selectedItem = item
+                }
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            
+            Spacer()
+            
+            // Bottom Profile
+            HStack(spacing: 12) {
+                Image(systemName: "person.crop.circle.fill")
+                    .resizable()
+                    .frame(width: 32, height: 32)
+                    .foregroundStyle(.gray)
+                Text("Ryan Chang")
+                    .font(.body.weight(.medium))
+                Spacer()
+            }
+            .padding()
+            .background(Color(.systemGray6).opacity(0.3))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding()
+        }
+        .background(Color(white: 0.98)) // Opaque light cream
+        .padding(.top, -10) // 目錄欄標題文字往上移
+    }
+}
+
+// MARK: - Navigation Pill
+struct NavigationPill: View {
+    @Binding var selectedItem: SidebarItem
+    @Binding var columnVisibility: NavigationSplitViewVisibility
+    
+    var body: some View {
+        HStack(spacing: 15) {
+            // Sidebar Toggle (Only shows when sidebar is hidden)
+            if columnVisibility == .detailOnly {
+                Button {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        columnVisibility = .all
+                    }
+                } label: {
+                    Image(systemName: "sidebar.left")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundStyle(.blue)
+                }
+                .padding(.trailing, 10)
+            }
+            
+            // Text-only Tabs
+            HStack(spacing: 20) {
+                ForEach(SidebarItem.allCases) { item in
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            selectedItem = item
+                        }
+                    } label: {
+                        Text(item.title)
+                            .font(.system(size: 17, weight: .medium)) // Match sidebar font size
+                            .foregroundStyle(selectedItem == item ? Color(red: 0.61, green: 0.35, blue: 0.82) : .black)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(selectedItem == item ? Color.gray.opacity(0.1) : Color.clear)
+                            )
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(GlassPillBackground())
+    }
+}
+
+private struct SideBarPresentedKey: EnvironmentKey {
+    static let defaultValue: Bool = false
+}
+
+extension EnvironmentValues {
+    var isSideBarPresented: Bool {
+        get { self[SideBarPresentedKey.self] }
+        set { self[SideBarPresentedKey.self] = newValue }
     }
 }

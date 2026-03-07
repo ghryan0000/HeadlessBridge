@@ -26,7 +26,7 @@ struct HomeView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 20))
                     .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 4)
                     .padding(.horizontal)
-                    .padding(.top, 16)
+                    .padding(.top, 16) // Restored from 0
 
                     // MARK: 診斷區塊
                     ConnectionDiagnosticSection()
@@ -196,24 +196,11 @@ struct StatusHeaderView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
 
-            // ── Row 1: 狀態 label + 計時器 ──────────────
+            // ── Row 1: 狀態 label ──────────────
             HStack(spacing: 6) {
                 Text("連線狀態")
                     .font(.system(size: 15, weight: .bold)) // 15pt Bold
                     .foregroundStyle(Color(white: 0.3))
-
-                // 累計時間：標籤 10pt Medium，數字 10pt Semibold Monospaced
-                if !manager.connectionDuration.isEmpty {
-                    Text("|")
-                        .font(.system(size: 10, weight: .light))
-                        .foregroundStyle(Color(white: 0.5).opacity(0.35))
-                    Text("累計當次連線時間")
-                        .font(.system(size: 10, weight: .medium)) 
-                        .foregroundStyle(Color(white: 0.5)) 
-                    Text(manager.connectionDuration)
-                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(Color(white: 0.5))
-                }
             }
 
             // ── Row 2: 連線網路架構圖 ────────────────────
@@ -236,9 +223,21 @@ struct StatusHeaderView: View {
                         .font(.system(size: 20, weight: .bold)) // 20pt Bold
                         .foregroundStyle(statusColor)
 
-                    Text(manager.status.isConnected ? "連線成功" : (manager.status.isLoading ? "連線中..." : "尚未連線"))
-                        .font(.system(size: 15, weight: .regular)) // 15pt Regular
-                        .foregroundStyle(manager.status.isConnected ? .blue : Color(white: 0.3))
+                    HStack(spacing: 8) {
+                        Text(manager.status.isConnected ? "連線成功" : (manager.status.isLoading ? "連線中..." : "尚未連線"))
+                            .font(.system(size: 15, weight: .regular)) // 15pt Regular
+                            .foregroundStyle(manager.status.isConnected ? .blue : Color(white: 0.3))
+                        
+                        // 累計時間：標籤 10pt Medium，數字 10pt Semibold Monospaced (移至此處)
+                        if !manager.connectionDuration.isEmpty {
+                            Text("|")
+                                .font(.system(size: 10, weight: .light))
+                                .foregroundStyle(Color(white: 0.5).opacity(0.35))
+                            Text(manager.connectionDuration)
+                                .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                                .foregroundStyle(Color.blue.opacity(0.8))
+                        }
+                    }
                 }
                 .frame(maxWidth: .infinity)
 
@@ -591,31 +590,32 @@ struct ConnectionDiagnosticSection: View {
                 }
             } label: {
                 HStack {
-                    Label {
-                        Text("連線狀態診斷")
-                            .font(.subheadline.bold()) // 同「環境與網路狀態」大小 (約 15pt)
-                            .foregroundStyle(Color(white: 0.3))
-                    } icon: {
-                        Image(systemName: "magnifyingglass.circle.fill")
-                            .font(.title) // 同「環境與網路狀態」重新整理圖示大小 (約 28pt)
-                            .foregroundStyle(.blue)
-                    }
+                    Text("連線狀態診斷")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(Color(white: 0.3))
+                        .padding(.leading, 12) // Indent by about one character width
                     
-                    Spacer()
+                    Image(systemName: manager.isRunningDiagnostic ? "arrow.clockwise.circle.fill" : "magnifyingglass.circle.fill")
+                        .font(.title) // 加大 1 倍 (由 title2 -> title)
+                        .foregroundStyle(.blue)
+                        .rotationEffect(.degrees(manager.isRunningDiagnostic ? 360 : 0))
+                        .animation(manager.isRunningDiagnostic ? .linear(duration: 1.0).repeatForever(autoreverses: false) : .default, value: manager.isRunningDiagnostic)
                     
                     if isRefreshing || manager.isRunningDiagnostic {
                         ProgressView()
                             .scaleEffect(0.9)
-                            .padding(.trailing, 8)
+                            .padding(.leading, 4)
                     }
                     
+                    Spacer()
+                    
                     Image(systemName: "chevron.up.chevron.down")
-                        .font(.title3.bold())
+                        .font(.caption.bold())
                         .foregroundStyle(.secondary)
                         .rotationEffect(.degrees(isExpanded ? 180 : 0))
                 }
                 .contentShape(Rectangle())
-                .padding(.vertical, 8) // 再次縮減內部標題行高度 (由 12 降至 8)
+                .padding(.vertical, 8)
             }
             .buttonStyle(.plain)
             
@@ -625,7 +625,7 @@ struct ConnectionDiagnosticSection: View {
                     
                     // A. Environment Results Block
                     VStack(alignment: .leading, spacing: 12) {
-                        HStack(spacing: 6) {
+                        HStack(spacing: 8) {
                             Text("環境與網路狀態")
                                 .font(.subheadline.bold())
                                 .foregroundStyle(.secondary)
@@ -640,8 +640,8 @@ struct ConnectionDiagnosticSection: View {
                                 }
                             } label: {
                                 Image(systemName: "arrow.clockwise.circle.fill")
-                                    .font(.title)
-                                    .foregroundStyle(.orange.opacity(0.85))
+                                    .font(.title) // 加大 1 倍
+                                    .foregroundStyle(.blue) // 改為藍色以統一風格
                                     .rotationEffect(.degrees(isRefreshing ? 360 : 0))
                                     .animation(isRefreshing ? .linear(duration: 0.8).repeatForever(autoreverses: false) : .default, value: isRefreshing)
                             }
@@ -698,7 +698,7 @@ struct ConnectionDiagnosticSection: View {
                     
                     // B. System Diagnostic Results Block
                     VStack(alignment: .leading, spacing: 12) {
-                        HStack(spacing: 6) {
+                        HStack(spacing: 8) {
                             Text("深度系統分析")
                                 .font(.subheadline.bold())
                                 .foregroundStyle(.secondary)
@@ -708,8 +708,8 @@ struct ConnectionDiagnosticSection: View {
                                 Task { await manager.runDiagnostics() }
                             } label: {
                                 Image(systemName: "arrow.clockwise.circle.fill")
-                                    .font(.title)
-                                    .foregroundStyle(.orange.opacity(0.85))
+                                    .font(.title) // 加大 1 倍
+                                    .foregroundStyle(.blue)
                                     .rotationEffect(.degrees(manager.isRunningDiagnostic ? 360 : 0))
                                     .animation(manager.isRunningDiagnostic ? .linear(duration: 0.8).repeatForever(autoreverses: false) : .default, value: manager.isRunningDiagnostic)
                             }
@@ -747,6 +747,7 @@ struct ConnectionDiagnosticSection: View {
                                         Image(systemName: result.status.icon)
                                             .font(.title3)
                                             .foregroundStyle(colorForResult(result.status))
+                                            .frame(width: 30, alignment: .trailing) // 與上方 EnvironmentRow 的對齊空間一致
                                     }
                                     if result.item != manager.diagnosticResults.last?.item {
                                         Divider().opacity(0.5)
