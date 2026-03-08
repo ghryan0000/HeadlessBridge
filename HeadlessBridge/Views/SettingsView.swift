@@ -259,9 +259,6 @@ struct SettingsView: View {
                 .safeAreaInset(edge: .top) {
                     Color.clear.frame(height: 70) // Match floating bar container height
                 }
-                .onTapGesture {
-                    hideKeyboard()
-                }
                 
                 // MARK: Floating Action Bar
                 HStack(spacing: 20) {
