@@ -69,8 +69,8 @@ struct SettingsView: View {
         NavigationStack {
             ZStack(alignment: .top) {
                 Form {
-                    // MARK: Mac mini 基本設定
-                    Section("Mac mini 設定") {
+                    // MARK: Mac 連線設定
+                    Section("Mac 設定") {
                         // Hostname：必要
                         InlineHintRow(
                             label: "Hostname",
@@ -78,10 +78,11 @@ struct SettingsView: View {
                             isRequired: true,
                             helpAction: { showHelp = .hostname }
                         ) {
-                            TextField("例如: Mac-mini.local", text: $manager.config.hostname)
+                            TextField("例如: My-Mac.local", text: $manager.config.hostname)
                                 .multilineTextAlignment(.trailing)
                                 .autocorrectionDisabled()
                                 .textInputAutocapitalization(.never)
+                                .keyboardType(.URL)
                                 .frame(maxWidth: 200)
                         }
                     }
@@ -110,7 +111,7 @@ struct SettingsView: View {
                         ) {
                             TextField("例如: 22", value: $manager.config.sshPort, format: .number.grouping(.never))
                                 .multilineTextAlignment(.trailing)
-                                .keyboardType(.numberPad)
+                                .keyboardType(.asciiCapableNumberPad)
                                 .frame(maxWidth: 80)
                         }
                         
@@ -151,7 +152,7 @@ struct SettingsView: View {
                         ) {
                             TextField("例如: 55777", value: $manager.config.betterDisplayPort, format: .number.grouping(.never))
                                 .multilineTextAlignment(.trailing)
-                                .keyboardType(.numberPad)
+                                .keyboardType(.asciiCapableNumberPad)
                                 .frame(maxWidth: 80)
                         }
                         
@@ -254,8 +255,12 @@ struct SettingsView: View {
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                 }
+                .scrollDismissesKeyboard(.immediately)
                 .safeAreaInset(edge: .top) {
                     Color.clear.frame(height: 70) // Match floating bar container height
+                }
+                .onTapGesture {
+                    hideKeyboard()
                 }
                 
                 // MARK: Floating Action Bar
@@ -475,5 +480,11 @@ struct HelpContent: View {
                 .font(.body)
                 .foregroundStyle(.secondary)
         }
+    }
+}
+// MARK: - View Extension for Keyboard
+extension View {
+    func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }

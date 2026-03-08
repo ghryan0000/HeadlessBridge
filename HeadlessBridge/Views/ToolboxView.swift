@@ -73,9 +73,9 @@ struct ToolboxView: View {
 // MARK: - Troubleshooting Details View
 struct TroubleshootingDetailsView: View {
     let guides: [(String, String, String)] = [
-        ("SSH 連線失敗", "key.fill", "確認 Mac mini 系統設定 > 共享 > 遠端登入已開啟，並確認帳號密碼正確"),
-        ("BetterDisplay 未回應", "display", "確認 BetterDisplay App 在 Mac mini 上已啟動並出現在選單列"),
-        ("找不到 Mac mini", "magnifyingglass", "確認 iPad 和 Mac mini 在同一網路，或用 USB-C 線直連"),
+        ("SSH 連線失敗", "key.fill", "確認 Mac 系統設定 > 共享 > 遠端登入已開啟，並確認帳號密碼正確"),
+        ("BetterDisplay 未回應", "display", "確認 BetterDisplay App 在 Mac 上已啟動並出現在選單列"),
+        ("找不到 Mac", "magnifyingglass", "確認 iPad 和 Mac 在同一網路，或用 USB-C 線直連"),
         ("Sidecar 沒有啟動", "rectangle.on.rectangle", "確認 iPad UUID 正確，可在設定頁點「自動取得 UUID」"),
         ("Tailscale 延遲高", "tortoise.fill", "確認兩台設備顯示 direct 直連，避免走 DERP 中繼伺服器")
     ]

@@ -4,7 +4,7 @@ import Foundation
 struct MacConfig: Codable, Identifiable {
     var id: UUID = UUID()
     var name: String
-    var hostname: String        // Mac-mini.local
+    var hostname: String        // My-Mac.local
     var sshUser: String         // ryanchang
     var sshPort: Int            // 22
     var betterDisplayPort: Int  // 55777
@@ -16,8 +16,8 @@ struct MacConfig: Codable, Identifiable {
 
     static let `default` = MacConfig(
         id: defaultID,
-        name: "Mac mini",
-        hostname: "Mac-mini.local",
+        name: "我的 Mac",
+        hostname: "My-Mac.local",
         sshUser: "",
         sshPort: 22,
         betterDisplayPort: 55777,

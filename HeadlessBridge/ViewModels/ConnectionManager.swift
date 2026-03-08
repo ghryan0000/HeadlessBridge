@@ -238,19 +238,19 @@ class ConnectionManager: ObservableObject {
         
         let password = keychain.load(for: "ssh_password_\(config.id)") ?? ""
         
-        // 1. 檢查 Mac mini 設定
-        await addDiagnostic(item: "Mac mini 設定", status: .checking, message: "檢查中...")
+        // 1. 檢查 Mac 設定
+        await addDiagnostic(item: "Mac 設定", status: .checking, message: "檢查中...")
         let configValid = !config.hostname.isEmpty && !config.sshUser.isEmpty && !config.iPadUUID.isEmpty
-        updateDiagnostic(item: "Mac mini 設定",
+        updateDiagnostic(item: "Mac 設定",
                          status: configValid ? .pass : .fail,
-                         message: configValid ? "設定完整" : "請完成 Mac mini 設定")
+                         message: configValid ? "設定完整" : "請完成 Mac 設定")
         
         // 2. 檢查網路連線
         await addDiagnostic(item: "網路連線", status: .checking, message: "偵測中...")
         let networkOk = await networkService.detectSameNetwork(hostname: config.hostname)
         updateDiagnostic(item: "網路連線",
                          status: networkOk ? .pass : .warning,
-                         message: networkOk ? "Mac mini 可連達" : "無法連達 Mac mini（可能需要 VPN）")
+                         message: networkOk ? "Mac 可連達" : "無法連達 Mac（可能需要 VPN）")
         
         // 3. 檢查 SSH
         await addDiagnostic(item: "SSH 服務", status: .checking, message: "測試中...")
@@ -550,7 +550,7 @@ enum ConnectionError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .notSameNetwork:
-            return "iPad 和 Mac mini 不在同一網路"
+            return "iPad 和 Mac 不在同一網路"
         case .tailscaleNotActive:
             return "Tailscale 未啟用"
         case .betterDisplayNotRunning:

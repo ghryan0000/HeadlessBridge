@@ -515,7 +515,7 @@ private struct MacDeviceNode: View {
 
     @State private var pulse = false
 
-    // Mac mini、Mac Studio、Mac Pro、MacBook 四種外形
+    // Mac mini、Mac Studio、Mac Pro、MacBook 四種外形 (通用 Mac 圖示)
     private let macIcons: [(symbol: String, tip: String)] = [
         ("macmini",            "mini"),
         ("macstudio",          "Studio"),

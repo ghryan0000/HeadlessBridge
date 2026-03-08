@@ -173,7 +173,7 @@ enum SSHError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .connectionFailed:
-            return "無法連線到 Mac mini，請確認設備已開機"
+            return "無法連線到 Mac，請確認設備已開機"
         case .authenticationFailed:
             return "SSH 認證失敗，請確認帳號密碼"
         case .executionFailed(let msg):

@@ -1,6 +1,6 @@
 # HeadlessBridge
 
-> 專為 headless Mac mini + iPad Air 設計的一站式連線管理 App
+> 專為 headless Mac + iPad Air 設計的一站式連線管理 App
 
 ---
 
@@ -65,7 +65,7 @@ xcodegen generate
 
 ## 使用說明
 
-### Mac mini 前置設定
+### Mac 前置設定
 
 1. **開啟 SSH**：系統設定 > 一般 > 共享 > 遠端登入 ✅
 2. **安裝 BetterDisplay**：確認 HTTP server 在 port 55777
@@ -75,14 +75,14 @@ xcodegen generate
 
 1. 開啟 HeadlessBridge
 2. 前往「設定」頁面
-3. 填入 Mac mini hostname、SSH 帳號密碼
+3. 填入 Mac hostname、SSH 帳號密碼
 4. 點「自動取得 UUID」或手動輸入 iPad UUID
 5. （選用）填入 Tailscale IP
 6. 點「儲存設定」
 
 ### 日常使用
 
-1. iPad 接 USB-C 線到 Mac mini（有線方案）
+1. iPad 接 USB-C 線到 Mac（有線方案）
    或確認兩台在同一 Wi-Fi（無線方案）
 2. 點「智慧連線」
 3. 等待 iPad 顯示 Mac 桌面
@@ -91,7 +91,7 @@ xcodegen generate
 
 ## 技術架構
 
-```
+```text
 HeadlessBridge/
 ├── Models/
 │   └── Models.swift          # 資料模型
@@ -114,7 +114,7 @@ HeadlessBridge/
 ## Roadmap
 
 | 版本 | 功能 |
-|---|---|
+| --- | --- |
 | **v1.0 MVP** | 有線/無線 Sidecar + 設定 + 診斷 |
 | **v1.1** | Tailscale VNC 整合 |
 | **v1.2** | iPad Widget |
