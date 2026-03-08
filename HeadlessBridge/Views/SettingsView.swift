@@ -322,7 +322,10 @@ struct SettingsView: View {
                 Button("取消", role: .cancel) { }
                 Button("確定清除", role: .destructive) {
                     manager.clearAllSettings()
+                    draftConfig = manager.config
                     sshPassword = ""
+                    originalPassword = ""
+                    manager.hasUnsavedChanges = false
                 }
             } message: {
                 Text("此動作將清除所有連線參數與金鑰，且無法復原。")
