@@ -15,14 +15,12 @@ class ConnectionManager: ObservableObject {
     @Published var selectedMode: ConnectionMode = .auto
     @Published var isRunningDiagnostic: Bool = false
     @Published var connectedAt: Date? = nil
-    @Published private var timerTick: Int = 0  // 每秒觸發 UI 重繪（超輕量）
     
     // MARK: - Private
     private let sshService = SSHService.shared
     private let networkService = NetworkService.shared
     private let keychain = KeychainService.shared
     private var connectionTask: Task<Void, Never>?
-    private var displayTimer: Timer?          // 1Hz 碼表計時器
     private var retryCount = 0
     private let maxRetries = 3
     private var isSyncing = false  // 防止重複同步
@@ -173,7 +171,7 @@ class ConnectionManager: ObservableObject {
     private func handleSuccess(mode: ConnectionMode) {
         status = .connected(mode)
         connectedAt = Date()
-        startDurationTimer()         // ▶ 啟動 1Hz 碼表
+
         saveStatus(mode: mode)
         AudioServicesPlaySystemSound(1016)
     }
@@ -220,11 +218,12 @@ class ConnectionManager: ObservableObject {
             } catch {}
         }
         
-        // 累積本次 session 時間並停止計時器
+        // 累積本次 session 時間
         if let start = connectedAt {
             totalAccumulatedSeconds += Date().timeIntervalSince(start)
         }
-        stopDurationTimer()
+        
+        // --- 結束連線工作 ---
         totalAccumulatedSeconds = 0   // 斷線後清零累計
         clearStatus()
         status = .disconnected
@@ -384,7 +383,6 @@ class ConnectionManager: ObservableObject {
                 print("DEBUG: Mac is mirroring but App shows \(status). Adopting connection...")
                 status = .connected(.wireless)
                 connectedAt = Date()
-                startDurationTimer()  // 同步恢復時也啟動計時
                 saveStatus(mode: .wireless)
                 AudioServicesPlaySystemSound(1016)
             } else {
@@ -408,25 +406,9 @@ class ConnectionManager: ObservableObject {
         }
     }
     
-    // MARK: - Duration Timer（1Hz，超輕量）
-    private func startDurationTimer() {
-        displayTimer?.invalidate()
-        displayTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                self?.timerTick += 1  // 觸發 @ObservableObject 重繪，本身不做任何運算
-            }
-        }
-    }
-
-    private func stopDurationTimer() {
-        displayTimer?.invalidate()
-        displayTimer = nil
-    }
-
     // MARK: - Connection Duration（累計）
-    var connectionDuration: String {
-        let _ = timerTick   // 讀取此值讓 SwiftUI 訂閱到每秒更新
-        let sessionSeconds = connectedAt.map { Date().timeIntervalSince($0) } ?? 0
+    func formattedDuration(at now: Date) -> String {
+        let sessionSeconds = connectedAt.map { now.timeIntervalSince($0) } ?? 0
         let total = totalAccumulatedSeconds + sessionSeconds
         let hours   = Int(total) / 3600
         let minutes = Int(total) % 3600 / 60

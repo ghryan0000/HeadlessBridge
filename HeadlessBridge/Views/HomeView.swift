@@ -229,13 +229,15 @@ struct StatusHeaderView: View {
                             .foregroundStyle(manager.status.isConnected ? Theme.musicRed : Color(white: 0.3))
                         
                         // 累計時間：標籤 10pt Medium，數字 10pt Semibold Monospaced (移至此處)
-                        if !manager.connectionDuration.isEmpty {
+                        if manager.status.isConnected {
                             Text("|")
                                 .font(.system(size: 10, weight: .light))
                                 .foregroundStyle(Color(white: 0.5).opacity(0.35))
-                            Text(manager.connectionDuration)
-                                .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                                .foregroundStyle(Theme.musicRed.opacity(0.8))
+                            TimelineView(.periodic(from: .now, by: 1.0)) { context in
+                                Text(manager.formattedDuration(at: context.date))
+                                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                                    .foregroundStyle(Theme.musicRed.opacity(0.8))
+                            }
                         }
                     }
                 }
