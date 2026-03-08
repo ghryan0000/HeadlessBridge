@@ -488,8 +488,35 @@ class ConnectionManager: ObservableObject {
     
     // MARK: - Clear Config (with proper Keychain cleanup)
     func clearAllSettings() {
-        let oldConfigID = config.id
-        keychain.delete(for: "ssh_password_\(oldConfigID)")
+        let oldConfig = config
+        let oldPassword = keychain.load(for: "ssh_password_\(oldConfig.id)") ?? ""
+        
+        // 如果目前正在連線中，或是畫面上還有畫面，強制送出斷線指令，避免 Mac 繼續鏡像
+        if status.isConnected {
+            Task {
+                do {
+                    _ = try await sshService.executeCommand(
+                        host: oldConfig.hostname,
+                        port: oldConfig.sshPort,
+                        user: oldConfig.sshUser,
+                        password: oldPassword,
+                        command: "curl 'http://localhost:\(oldConfig.betterDisplayPort)/set?sidecarConnected=off&specifier=\(oldConfig.iPadUUID)'"
+                    )
+                } catch {
+                    print("DEBUG: Failed to force disconnect during reset: \(error)")
+                }
+            }
+        }
+        
+        // 結束當前連線狀態
+        connectionTask?.cancel()
+        connectionTask = nil
+        totalAccumulatedSeconds = 0
+        status = .disconnected
+        connectedAt = nil
+        
+        // 清除資料
+        keychain.delete(for: "ssh_password_\(oldConfig.id)")
         config = MacConfig.default
         keychain.delete(for: "ssh_password_\(config.id)")
         clearStatus()
