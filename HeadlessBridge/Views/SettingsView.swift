@@ -435,8 +435,14 @@ struct SettingsView: View {
             
             fetchUUIDError = "找不到 UUID，請確認 iPad 是否已準備就緒"
         } catch {
-            print("Failed to fetch UUID: \(error)")
-            fetchUUIDError = "連線失敗: \(error.localizedDescription)"
+            let errorMsg = error.localizedDescription
+            if errorMsg.contains("NIOConnectionError") || errorMsg.contains("Socket") {
+                fetchUUIDError = "網路無法連達 Mac。\n請檢查 Hostname (是否拼錯?) 或關閉 VPN。"
+            } else if errorMsg.contains("Authentication") {
+                fetchUUIDError = "SSH 帳號或密碼錯誤。"
+            } else {
+                fetchUUIDError = "連線失敗: \(errorMsg)"
+            }
         }
     }
     
