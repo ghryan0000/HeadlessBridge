@@ -15,6 +15,7 @@ class ConnectionManager: ObservableObject {
     @Published var selectedMode: ConnectionMode = .auto
     @Published var isRunningDiagnostic: Bool = false
     @Published var connectedAt: Date? = nil
+    @Published var hasUnsavedChanges: Bool = false
     
     // MARK: - Private
     private let sshService = SSHService.shared

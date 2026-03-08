@@ -1,7 +1,7 @@
 import Foundation
 
 // MARK: - Mac Configuration
-struct MacConfig: Codable, Identifiable {
+struct MacConfig: Codable, Identifiable, Equatable {
     var id: UUID = UUID()
     var name: String
     var hostname: String        // My-Mac.local

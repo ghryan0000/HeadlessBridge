@@ -50,7 +50,9 @@ struct InlineHintRow<Content: View>: View {
 // MARK: - Settings View
 struct SettingsView: View {
     @EnvironmentObject var manager: ConnectionManager
+    @State private var draftConfig = MacConfig.default
     @State private var sshPassword: String = ""
+    @State private var originalPassword: String = ""
     @State private var showPassword: Bool = false
     @State private var showSaved: Bool = false
     @State private var showHelp: HelpType? = nil
@@ -78,7 +80,7 @@ struct SettingsView: View {
                             isRequired: true,
                             helpAction: { showHelp = .hostname }
                         ) {
-                            TextField("例如: My-Mac.local", text: $manager.config.hostname)
+                            TextField("例如: My-Mac.local", text: $draftConfig.hostname)
                                 .multilineTextAlignment(.trailing)
                                 .autocorrectionDisabled()
                                 .textInputAutocapitalization(.never)
@@ -96,7 +98,7 @@ struct SettingsView: View {
                             isRequired: true,
                             helpAction: { showHelp = .username }
                         ) {
-                            TextField("例如: ryanchang", text: $manager.config.sshUser)
+                            TextField("例如: ryanchang", text: $draftConfig.sshUser)
                                 .multilineTextAlignment(.trailing)
                                 .autocorrectionDisabled()
                                 .textInputAutocapitalization(.never)
@@ -109,7 +111,7 @@ struct SettingsView: View {
                             hint: "💡 SSH 預設為 22，未修改過可保持不變",
                             isRequired: true
                         ) {
-                            TextField("例如: 22", value: $manager.config.sshPort, format: .number.grouping(.never))
+                            TextField("例如: 22", value: $draftConfig.sshPort, format: .number.grouping(.never))
                                 .multilineTextAlignment(.trailing)
                                 .keyboardType(.asciiCapableNumberPad)
                                 .frame(maxWidth: 80)
@@ -150,7 +152,7 @@ struct SettingsView: View {
                             hint: "💡 開啟 BetterDisplay > 偏好設定 > API，查看 HTTP Port",
                             isRequired: true
                         ) {
-                            TextField("例如: 55777", value: $manager.config.betterDisplayPort, format: .number.grouping(.never))
+                            TextField("例如: 55777", value: $draftConfig.betterDisplayPort, format: .number.grouping(.never))
                                 .multilineTextAlignment(.trailing)
                                 .keyboardType(.asciiCapableNumberPad)
                                 .frame(maxWidth: 80)
@@ -212,7 +214,7 @@ struct SettingsView: View {
                                 .fixedSize() // 按鈕不被壓縮
                                 
                                 TextField("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-                                          text: $manager.config.iPadUUID)
+                                          text: $draftConfig.iPadUUID)
                                     .multilineTextAlignment(.trailing)
                                     .autocorrectionDisabled()
                                     .textInputAutocapitalization(.never)
@@ -241,7 +243,7 @@ struct SettingsView: View {
                             hint: "💡 在 Mac 終端機執行 tailscale ip 取得",
                             isRequired: false
                         ) {
-                            TextField("例如: 100.x.x.x", text: $manager.config.tailscaleIP)
+                            TextField("例如: 100.x.x.x", text: $draftConfig.tailscaleIP)
                                 .multilineTextAlignment(.trailing)
                                 .autocorrectionDisabled()
                                 .textInputAutocapitalization(.never)
@@ -326,7 +328,16 @@ struct SettingsView: View {
                 Text("此動作將清除所有連線參數與金鑰，且無法復原。")
             }
             .onAppear {
-                sshPassword = keychain.load(for: "ssh_password_\(manager.config.id)") ?? ""
+                draftConfig = manager.config
+                originalPassword = keychain.load(for: "ssh_password_\(manager.config.id)") ?? ""
+                sshPassword = originalPassword
+                manager.hasUnsavedChanges = false
+            }
+            .onChange(of: draftConfig) { _, newConfig in
+                manager.hasUnsavedChanges = (newConfig != manager.config) || (sshPassword != originalPassword)
+            }
+            .onChange(of: sshPassword) { _, newPassword in
+                manager.hasUnsavedChanges = (draftConfig != manager.config) || (newPassword != originalPassword)
             }
             .sheet(item: $showHelp) { type in
                 HelpSheet(type: type)
@@ -336,10 +347,15 @@ struct SettingsView: View {
     
     // MARK: - Save Settings
     private func saveSettings() {
+        manager.config = draftConfig
         manager.saveConfig()
         if !sshPassword.isEmpty {
             keychain.save(password: sshPassword, for: "ssh_password_\(manager.config.id)")
+        } else {
+            keychain.delete(for: "ssh_password_\(manager.config.id)")
         }
+        originalPassword = sshPassword
+        manager.hasUnsavedChanges = false
         withAnimation {
             showSaved = true
         }
@@ -372,9 +388,9 @@ struct SettingsView: View {
             var result = ""
             for cmd in commands {
                 let output = try await SSHService.shared.executeCommand(
-                    host: manager.config.hostname,
-                    port: manager.config.sshPort,
-                    user: manager.config.sshUser,
+                    host: draftConfig.hostname,
+                    port: draftConfig.sshPort,
+                    user: draftConfig.sshUser,
                     password: password,
                     command: cmd
                 )
@@ -423,7 +439,7 @@ struct SettingsView: View {
     
     private func updateUUID(_ uuid: String) {
         Task { @MainActor in
-            manager.config.iPadUUID = uuid
+            draftConfig.iPadUUID = uuid
         }
     }
 }

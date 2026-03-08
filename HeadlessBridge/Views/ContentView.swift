@@ -41,12 +41,49 @@ struct ContentView: View {
     @State private var selectedTab = SidebarItem.home
     @State private var columnVisibility = NavigationSplitViewVisibility.all
     
+    // Intercepting navigation to warn about unsaved changes
+    @State private var intendedDestination: SidebarItem? = nil
+    @State private var showUnsavedChangesAlert = false
+    
+    // Bindings
+    var sidebarBinding: Binding<SidebarItem?> {
+        Binding(
+            get: { selectedSidebarItem },
+            set: { newValue in
+                guard let newValue = newValue, newValue != selectedSidebarItem else { return }
+                if manager.hasUnsavedChanges {
+                    intendedDestination = newValue
+                    showUnsavedChangesAlert = true
+                } else {
+                    selectedSidebarItem = newValue
+                    selectedTab = newValue
+                }
+            }
+        )
+    }
+    
+    var tabBinding: Binding<SidebarItem> {
+        Binding(
+            get: { selectedTab },
+            set: { newValue in
+                guard newValue != selectedTab else { return }
+                if manager.hasUnsavedChanges {
+                    intendedDestination = newValue
+                    showUnsavedChangesAlert = true
+                } else {
+                    selectedTab = newValue
+                    selectedSidebarItem = newValue
+                }
+            }
+        )
+    }
+    
     var body: some View {
         ZStack(alignment: .top) {
             if sizeClass == .regular {
                 // iPad Layout with Split View + Floating Pill
                 NavigationSplitView(columnVisibility: $columnVisibility) {
-                    SidebarContent(selectedItem: $selectedSidebarItem, columnVisibility: $columnVisibility)
+                    SidebarContent(selectedItem: sidebarBinding, columnVisibility: $columnVisibility)
                         .navigationSplitViewColumnWidth(min: 250, ideal: 280, max: 350)
                 } detail: {
                     ZStack(alignment: .top) {
@@ -68,7 +105,16 @@ struct ContentView: View {
                                 NavigationPill(
                                     selectedItem: Binding(
                                         get: { selectedSidebarItem ?? .home },
-                                        set: { selectedSidebarItem = $0 }
+                                        set: { newValue in
+                                            guard newValue != selectedSidebarItem else { return }
+                                            if manager.hasUnsavedChanges {
+                                                intendedDestination = newValue
+                                                showUnsavedChangesAlert = true
+                                            } else {
+                                                selectedSidebarItem = newValue
+                                                selectedTab = newValue
+                                            }
+                                        }
                                     ),
                                     columnVisibility: $columnVisibility
                                 )
@@ -81,7 +127,7 @@ struct ContentView: View {
                 }
             } else {
                 // iPhone TabView Layout
-                TabView(selection: $selectedTab) {
+                TabView(selection: tabBinding) {
                     ForEach(SidebarItem.allCases) { item in
                         item.destination(for: item, sidebarSelection: $selectedSidebarItem, tabSelection: $selectedTab)
                             .tabItem {
@@ -92,6 +138,19 @@ struct ContentView: View {
                 }
                 .tint(.blue)
             }
+        }
+        .alert("尚未儲存設定", isPresented: $showUnsavedChangesAlert) {
+            Button("繼續編輯", role: .cancel) { }
+            Button("捨棄變更", role: .destructive) {
+                // 回復原狀(清除 flags) 並執行原本的跳頁
+                manager.hasUnsavedChanges = false
+                if let next = intendedDestination {
+                    selectedSidebarItem = next
+                    selectedTab = next
+                }
+            }
+        } message: {
+            Text("您的連線參數已修改但尚未儲存，若現在離開，將遺失這些變更。")
         }
     }
 }
