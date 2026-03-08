@@ -13,6 +13,7 @@
 		21F17757010B3D6F7D7B5EF3 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFC843043B1019640315D6A2 /* HistoryView.swift */; };
 		21FEF9E2D82E0022AD468ACC /* Color+ConnectionMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0478AA7373592948EDE734B2 /* Color+ConnectionMode.swift */; };
 		3C32A80020DAA6BBFCCB0291 /* HeadlessBridgeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE82E9AE2E8C041FF15CA3F /* HeadlessBridgeApp.swift */; };
+		4E476521A69479CB1A3467F7 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC6DB29CD5EC821FB30682ED /* Theme.swift */; };
 		53FF611104A3685A81D18EA9 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57E4E644175975AB6BE91301 /* KeychainService.swift */; };
 		5A93565EC6AA6F14931CF09F /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38E5D1A477891E39758C66A /* ConnectionManager.swift */; };
 		642DB960FCD548D843326E9C /* ToolboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3DA07BE99D083B2D3C7167F /* ToolboxView.swift */; };
@@ -36,6 +37,7 @@
 		C8E4627CFD5961EE04BCC3D3 /* SSHService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHService.swift; sourceTree = "<group>"; };
 		D38E5D1A477891E39758C66A /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
 		DA60F1555C6F58C6517BEFC6 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		DC6DB29CD5EC821FB30682ED /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		DFC843043B1019640315D6A2 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		E989C63EC576A832FC6350C2 /* HeadlessBridge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HeadlessBridge.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FDA02E4598AA807DC19EE5BD /* HeadlessBridge.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HeadlessBridge.entitlements; sourceTree = "<group>"; };
@@ -103,6 +105,7 @@
 				910D19814A422973E9444387 /* HomeView.swift */,
 				FFF3756725AA6F03F89A315A /* LiquidGlassComponents.swift */,
 				4391564D91499B69564D5567 /* SettingsView.swift */,
+				DC6DB29CD5EC821FB30682ED /* Theme.swift */,
 				C3DA07BE99D083B2D3C7167F /* ToolboxView.swift */,
 			);
 			path = Views;
@@ -193,6 +196,7 @@
 				7ADE3EC542925EBC1A7F9C39 /* NetworkService.swift in Sources */,
 				87AFFF76AB07A1E21D942FD0 /* SSHService.swift in Sources */,
 				0694013F81EEF2FEC2395435 /* SettingsView.swift in Sources */,
+				4E476521A69479CB1A3467F7 /* Theme.swift in Sources */,
 				642DB960FCD548D843326E9C /* ToolboxView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

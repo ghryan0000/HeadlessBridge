@@ -108,8 +108,8 @@ extension View {
     }
 }
 
-// MARK: - Podcasts Specific Styles
-struct PodcastsSidebarItemStyle: ViewModifier {
+// MARK: - Apple Music Specific Styles
+struct MusicSidebarItemStyle: ViewModifier {
     let isSelected: Bool
     
     func body(content: Content) -> some View {
@@ -118,14 +118,18 @@ struct PodcastsSidebarItemStyle: ViewModifier {
             .padding(.vertical, 8)
             .background(
                 Capsule()
-                    .fill(isSelected ? Color(white: 0.9) : Color.clear)
+                    .fill(isSelected ? Theme.musicRedLight : Color.clear)
             )
-            .foregroundStyle(isSelected ? Color(red: 0.61, green: 0.35, blue: 0.82) : .primary) // Podcasts Purple
+            .foregroundStyle(isSelected ? Theme.musicRed : .primary)
     }
 }
 
 extension View {
+    func musicSidebarStyle(isSelected: Bool) -> some View {
+        self.modifier(MusicSidebarItemStyle(isSelected: isSelected))
+    }
+    
     func podcastsSidebarStyle(isSelected: Bool) -> some View {
-        self.modifier(PodcastsSidebarItemStyle(isSelected: isSelected))
+        self.modifier(MusicSidebarItemStyle(isSelected: isSelected))
     }
 }

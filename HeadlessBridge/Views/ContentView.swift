@@ -116,7 +116,7 @@ struct SidebarContent: View {
                         .font(.system(size: 17, weight: .medium))
                     Spacer()
                 }
-                .podcastsSidebarStyle(isSelected: selectedItem == item)
+                .musicSidebarStyle(isSelected: selectedItem == item)
                 .listRowInsets(EdgeInsets(top: 2, leading: 10, bottom: 2, trailing: 10))
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
@@ -144,8 +144,22 @@ struct SidebarContent: View {
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .padding()
         }
-        .background(Color(white: 0.98)) // Opaque light cream
-        .padding(.top, -10) // 目錄欄標題文字往上移
+        .background(
+            ZStack(alignment: .trailing) {
+                // Subtle gradient for depth
+                LinearGradient(
+                    colors: Theme.sidebarGradients,
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                
+                // Fine separator line/shadow for distinction
+                Rectangle()
+                    .fill(Color.black.opacity(0.05))
+                    .frame(width: 0.5)
+            }
+        )
+        .padding(.top, -10)
     }
 }
 
@@ -164,8 +178,8 @@ struct NavigationPill: View {
                     }
                 } label: {
                     Image(systemName: "sidebar.left")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundStyle(.blue)
+                        .font(.system(size: 20, weight: .regular))
+                        .foregroundStyle(Theme.musicRed) // Use Apple Music Red
                 }
                 .padding(.trailing, 10)
             }
@@ -180,7 +194,7 @@ struct NavigationPill: View {
                     } label: {
                         Text(item.title)
                             .font(.system(size: 17, weight: .medium)) // Match sidebar font size
-                            .foregroundStyle(selectedItem == item ? Color(red: 0.61, green: 0.35, blue: 0.82) : .black)
+                            .foregroundStyle(selectedItem == item ? Theme.musicRed : .black)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
                             .background(

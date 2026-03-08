@@ -103,12 +103,12 @@ struct ModeItem: View {
             Image(systemName: mode.icon)
                 .font(.system(size: 22, weight: .medium))
                 .scaleEffect(mode == .wired ? 0.8 : 1.0) // 縮減 USB 圖示使高度與 Wi-Fi 一致
-                .foregroundStyle(isSelected ? .blue : .secondary)
+                .foregroundStyle(isSelected ? Theme.musicRed : .secondary)
 
             VStack(spacing: 2) {
                 Text(mode.rawValue)
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(isSelected ? .blue : .primary)
+                    .foregroundStyle(isSelected ? Theme.musicRed : .primary)
                     .lineLimit(1)
                 
                 Text(modeSubtitle)
@@ -134,7 +134,7 @@ struct ModeItem: View {
             // 選中 tab 頂部加一條藍色指示線（6pt 加粗，圓角設計）
             isSelected ?
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.blue)
+                .fill(Theme.musicRed)
                 .frame(height: 6)
                 .frame(maxHeight: .infinity, alignment: .top)
                 .padding(.horizontal, 16)
@@ -186,10 +186,10 @@ struct StatusHeaderView: View {
 
     var statusColor: Color {
         switch manager.status {
-        case .connected:    return .blue // 改為與啟動按鈕一致的藍色
+        case .connected:    return Theme.musicRed
         case .failed:       return .red
         case .disconnected: return .gray
-        default:            return .blue
+        default:            return Theme.musicRed
         }
     }
 
@@ -226,7 +226,7 @@ struct StatusHeaderView: View {
                     HStack(spacing: 8) {
                         Text(manager.status.isConnected ? "連線成功" : (manager.status.isLoading ? "連線中..." : "尚未連線"))
                             .font(.system(size: 15, weight: .regular)) // 15pt Regular
-                            .foregroundStyle(manager.status.isConnected ? .blue : Color(white: 0.3))
+                            .foregroundStyle(manager.status.isConnected ? Theme.musicRed : Color(white: 0.3))
                         
                         // 累計時間：標籤 10pt Medium，數字 10pt Semibold Monospaced (移至此處)
                         if !manager.connectionDuration.isEmpty {
@@ -235,7 +235,7 @@ struct StatusHeaderView: View {
                                 .foregroundStyle(Color(white: 0.5).opacity(0.35))
                             Text(manager.connectionDuration)
                                 .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                                .foregroundStyle(Color.blue.opacity(0.8))
+                                .foregroundStyle(Theme.musicRed.opacity(0.8))
                         }
                     }
                 }
@@ -252,10 +252,10 @@ struct StatusHeaderView: View {
                     } label: {
                         ZStack {
                             Circle()
-                                .fill(manager.status.isConnected ? Color.red : Color.blue)
+                                .fill(manager.status.isConnected ? Color.red : Theme.musicRed)
                                 .frame(width: 64, height: 64) // 尺寸縮減 20% (80->64)
                                 .shadow(
-                                    color: (manager.status.isConnected ? Color.red : Color.blue).opacity(0.3),
+                                    color: (manager.status.isConnected ? Color.red : Theme.musicRed).opacity(0.3),
                                     radius: 8, x: 0, y: 4
                                 )
 
@@ -303,7 +303,7 @@ struct NetworkTopologyView: View {
     // 依連線模式選色
     private var modeColor: Color {
         switch mode {
-        case .wired:    return .blue
+        case .wired:    return Theme.musicRed
         case .wireless: return .green
         case .remote:   return .orange
         case .auto:     return .purple
@@ -397,26 +397,33 @@ struct NetworkTopologyView: View {
                     .position(x: rightCenter.x, y: h / 2)
 
                 // ── 中間線路標籤 ──
-                VStack(spacing: 2) {
-                    Image(systemName: modeIconName)
-                        .font(.caption2)
-                        .foregroundStyle(isConnected ? modeColor : .secondary)
-                    Text(modeLabel)
-                        .font(.system(size: 12, weight: .medium)) // 12pt Medium
-                        .foregroundStyle(isConnected ? modeColor : .secondary)
-                }
-                .padding(.horizontal, 10) // 增加內縮以容納 12pt
-                .padding(.vertical, 5)
-                .background(
-                    Capsule()
-                        .fill(isConnected ? modeColor.opacity(0.1) : Color(.tertiarySystemBackground))
-                        .overlay(
-                            Capsule().stroke(
-                                isConnected ? modeColor.opacity(0.3) : Color.secondary.opacity(0.2),
-                                lineWidth: 1
+                VStack(spacing: 8) {
+                    VStack(spacing: 2) {
+                        Image(systemName: modeIconName)
+                            .font(.caption2)
+                            .foregroundStyle(isConnected ? modeColor : .secondary)
+                        Text(modeLabel)
+                            .font(.system(size: 12, weight: .medium)) // 12pt Medium
+                            .foregroundStyle(isConnected ? modeColor : .secondary)
+                    }
+                    .padding(.horizontal, 10) // 增加內縮以容納 12pt
+                    .padding(.vertical, 5)
+                    .background(
+                        Capsule()
+                            .fill(isConnected ? modeColor.opacity(0.1) : Color(.tertiarySystemBackground))
+                            .overlay(
+                                Capsule().stroke(
+                                    isConnected ? modeColor.opacity(0.3) : Color.secondary.opacity(0.2),
+                                    lineWidth: 1
+                                )
                             )
-                        )
-                )
+                    )
+                    
+                    Text("HeadlessBridge")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(.secondary.opacity(0.8))
+                        .offset(y: 4)
+                }
                 .position(x: midX, y: h / 2)
             }
         }
@@ -597,7 +604,7 @@ struct ConnectionDiagnosticSection: View {
                     
                     Image(systemName: manager.isRunningDiagnostic ? "arrow.clockwise.circle.fill" : "magnifyingglass.circle.fill")
                         .font(.title) // 加大 1 倍 (由 title2 -> title)
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(Theme.musicRed)
                         .rotationEffect(.degrees(manager.isRunningDiagnostic ? 360 : 0))
                         .animation(manager.isRunningDiagnostic ? .linear(duration: 1.0).repeatForever(autoreverses: false) : .default, value: manager.isRunningDiagnostic)
                     
@@ -641,7 +648,7 @@ struct ConnectionDiagnosticSection: View {
                             } label: {
                                 Image(systemName: "arrow.clockwise.circle.fill")
                                     .font(.title) // 加大 1 倍
-                                    .foregroundStyle(.blue) // 改為藍色以統一風格
+                                    .foregroundStyle(Theme.musicRed) // 改為藍色以統一風格
                                     .rotationEffect(.degrees(isRefreshing ? 360 : 0))
                                     .animation(isRefreshing ? .linear(duration: 0.8).repeatForever(autoreverses: false) : .default, value: isRefreshing)
                             }
