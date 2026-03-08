@@ -471,7 +471,7 @@ struct HelpSheet: View {
                                     content: "這不是你的全名 (例如: Ryan Chang)，而是系統的「帳號名稱」短名稱 (例如: ryanchang)。\n\n【最推薦方法】\n在 Mac 的終端機執行 `whoami`，回傳的小寫文字即是正確的名稱。\n\n【系統設定查看】\n1. 前往「系統設定 > 使用者與群組」。\n2. 在你的帳號名字上「按右鍵」或「按住 Control 鍵再點擊」。\n3. 選擇「進階選項...」。\n4. 視窗中的『帳號名稱』一欄才是正確的（注意：視窗頂端的『使用者名稱』通常是全名，並非 SSH 所需）。")
                     case .uuid:
                         HelpContent(title: "iPad UUID 是什麼？",
-                                    content: "這是 Sidecar 用來精準識別這台 iPad 的專屬代碼 (Identifier)。當連線時，系統必須確認是要連到哪一台 iPad。\n\n💡 發生『連線失敗』的常見原因：\n1. 密碼或帳號錯誤 (Error 4: 權限被拒)\n2. Mac 與 iPad 不在同一個 Wi-Fi 網域內\n3. Mac 與 iPad 從未透過 USB 線配對信任過\n\n建議你先確認 SSH 帳號密碼是否正確再試一次。你也可以在 Mac 終端機執行 `system_profiler SPSidecarReporter | grep 'Identifier:'` 來手動獲取 UUID。")
+                                    content: "這是 Sidecar 辨識這台 iPad 的身分證字號。第一次設定的使用者，請務必先完成以下步驟：\n\n【第一步：建立信任紀錄】\n1. 使用 **USB 線** 將 iPad 連接至 Mac。\n2. 在 iPad 上點選「信任這部電腦」，並在 Mac 上點選「允許」。\n3. 在 Mac 的「系統設定 > 顯示器」點選『+』並嘗試啟動一次 Sidecar。只要成功啟動一次，系統就會留下紀錄。\n\n【如何手動獲取？】\n若自動取得失敗，請在 Mac 終端機執行：\n`system_profiler SPUSBDataType | grep -A 10 \"iPad\" | grep \"Serial Number\"` \n回傳的一長串代碼即是 UUID。\n\n💡 常見失敗原因：\n• 未曾用線連接過 Mac (無信任紀錄)\n• 兩台設備登入的是不同的 Apple ID\n• iPad 的「接續互通 (Handoff)」功能未開啟")
                     }
                     
                     Spacer()
