@@ -506,7 +506,7 @@ private struct DeviceNode: View {
                 .foregroundStyle(isActive ? color : .secondary)
         }
         .onAppear { if isActive { pulse = true } }
-        .onChange(of: isActive, perform: { active in pulse = active })
+        .onChange(of: isActive) { _, active in pulse = active }
     }
 }
 
@@ -555,7 +555,7 @@ private struct MacDeviceNode: View {
                 .foregroundStyle(isActive ? color : .secondary)
         }
         .onAppear { if isActive { pulse = true } }
-        .onChange(of: isActive, perform: { active in pulse = active })
+        .onChange(of: isActive) { _, active in pulse = active }
     }
 }
 

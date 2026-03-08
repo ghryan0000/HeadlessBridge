@@ -36,7 +36,7 @@
         <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
     <key>NSLocalNetworkUsageDescription</key>
-    <string>HeadlessBridge 需要存取區域網路以連線到 Mac mini</string>
+    <string>HeadlessBridge 需要存取區域網路以連線到 Mac</string>
     <key>NSBonjourServices</key>
     <array>
         <string>_ssh._tcp</string>
