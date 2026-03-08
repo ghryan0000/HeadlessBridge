@@ -17,7 +17,7 @@ struct MacConfig: Codable, Identifiable, Equatable {
     static let `default` = MacConfig(
         id: defaultID,
         name: "我的 Mac",
-        hostname: "My-Mac.local",
+        hostname: "",
         sshUser: "",
         sshPort: 22,
         betterDisplayPort: 55777,
