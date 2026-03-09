@@ -145,7 +145,7 @@ class ConnectionManager: ObservableObject {
         status = .connecting("建立遠距連線中...")
         
         guard environment.isTailscaleActive else {
-            status = .failed("Tailscale 未啟用，請確認 Tailscale App 已開啟")
+            status = .failed("iPad Tailscale 未啟用，請確認 iPad 上的 Tailscale App 已開啟")
             return
         }
         
@@ -330,7 +330,7 @@ class ConnectionManager: ObservableObject {
             let tsOk = environment.isTailscaleActive
             updateDiagnostic(item: "Tailscale",
                              status: tsOk ? .pass : .warning,
-                             message: tsOk ? "Tailscale 連線正常" : "Tailscale 未連線")
+                             message: tsOk ? "iPad Tailscale 連線正常" : "iPad Tailscale 未連線")
         }
         
         isRunningDiagnostic = false
@@ -562,7 +562,7 @@ enum ConnectionError: LocalizedError {
         case .notSameNetwork:
             return "iPad 和 Mac 不在同一網路"
         case .tailscaleNotActive:
-            return "Tailscale 未啟用"
+            return "iPad Tailscale 未啟用"
         case .betterDisplayNotRunning:
             return "BetterDisplay 未執行"
         case .configIncomplete:

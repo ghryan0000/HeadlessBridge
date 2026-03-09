@@ -124,67 +124,105 @@ struct TroubleshootingDetailsView: View {
 struct UserManualView: View {
     var body: some View {
         List {
-            Section("📖 核心概念 (Core Concepts)") {
-                ManualRow(title: "什麼是 HeadlessBridge？",
-                          icon: "bridge",
-                          content: "這是一款讓 iPad 變成 Mac 完美第二螢幕的工具。它透過 SSH 技術自動化控制 Mac 的 Sidecar 功能，讓你可以「無頭 (Headless)」啟動鏡像，不需要在 Mac 上手動操作。")
-                
-                ManualRow(title: "專有名詞白話文",
-                          icon: "character.book.closed.fill",
-                          content: """
-                          • Hostname: Mac 在區域網路的小名 (例如: My-Mac.local)。
-                          • SSH: 一種加密的「遙控通道」，App 透過它對 Mac 下完指令。
-                          • UUID: 每台 iPad 獨一無二的身分證字號，用來告訴 Mac 要投影到哪台。
-                          • Sidecar: Apple 內建的無線/有線螢幕鏡像技術。
-                          """)
+            Section("📌 核心設定順序 (The Golden Order)") {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("請按此順序操作，保證設定成功：")
+                        .font(.subheadline.bold())
+                    
+                    HStack(alignment: .top, spacing: 10) {
+                        Text("1").font(.caption.bold()).padding(6).background(Circle().fill(.blue.opacity(0.1)))
+                        Text("在 Mac 安裝 BetterDisplay 並開啟 API")
+                    }
+                    HStack(alignment: .top, spacing: 10) {
+                        Text("2").font(.caption.bold()).padding(6).background(Circle().fill(.blue.opacity(0.1)))
+                        Text("在 Mac/iPad 安裝 Tailscale 並登入同帳號")
+                    }
+                    HStack(alignment: .top, spacing: 10) {
+                        Text("3").font(.caption.bold()).padding(6).background(Circle().fill(.blue.opacity(0.1)))
+                        Text("透過 USB 先連通一次（信任設備）")
+                    }
+                    HStack(alignment: .top, spacing: 10) {
+                        Text("4").font(.caption.bold()).padding(6).background(Circle().fill(.blue.opacity(0.1)))
+                        Text("於本 App 設定頁「自動取得 UUID」")
+                    }
+                    HStack(alignment: .top, spacing: 10) {
+                        Text("5").font(.caption.bold()).padding(6).background(Circle().fill(.blue.opacity(0.1)))
+                        Text("切換至「遠端 VNC」模式並啟動")
+                    }
+                }
+                .padding(.vertical, 8)
             }
-            
-            Section("🚀 第一次設定 (First-time Setup)") {
-                ManualRow(title: "第一步：USB 配對信任",
+
+            Section("⚡ 有線 Sidecar (最短延遲、最穩定的選擇)") {
+                ManualRow(title: "第一步：準備導線",
                           icon: "cable.connector",
-                          content: "第一次使用時，請務必先用 USB 線連接 iPad 與 Mac。在兩端點選「信任」並輸入密碼。這是為了確保 Mac 擁有喚醒這台 iPad 的權限。")
+                          content: "建議使用高品質的數據線（如 iPad 原廠線）。良好的線材是影像傳輸不中斷的關鍵。")
                 
-                ManualRow(title: "第二步：啟動遠端登入 (SSH)",
-                          icon: "lock.fill",
-                          content: "在 Mac 前往「系統設定 > 一般 > 共享」，開啟「遠端登入」。並在 iPad App 的設定頁填入正確的帳號與密碼。")
+                ManualRow(title: "第二步：物理連接與信任",
+                          icon: "lock.shield",
+                          content: "插入連線後，若 iPad 詢問「要信任此電腦嗎？」，請點選「信任」並輸入螢幕密碼。這是為了授予 Mac 遙控螢幕的權限。")
                 
-                ManualRow(title: "第三步：取得 UUID",
-                          icon: "ipad.badge.play",
-                          content: "在 iPad 連接 Mac 的狀態下，點選設定頁的「從 SSH 自動取得 UUID」。若成功出現一長串代碼，即代表設定完成！")
+                ManualRow(title: "第三步：啟動連線",
+                          icon: "play.fill",
+                          content: "在本 App 首頁上方選擇「有線 Sidecar」模式，接著點擊中央的紅色「啟動」大按鈕。")
             }
             
-            Section("💡 日常操作與技巧 (Tips)") {
-                ManualRow(title: "有線 vs 無線",
-                          icon: "wifi",
-                          content: "有線連線 (USB) 延遲最低、畫質最穩；無線連線則需要兩台設備在同一個 Wi-Fi 網域內。")
-                
-                ManualRow(title: "關閉 VPN 是關鍵",
-                          icon: "v_square.fill",
-                          content: "VPN 會隱藏你的區域網路。如果你發現「診斷失敗」或「找不到 Mac」，請先暫時關閉 iPad 上的 VPN 再試一次。")
+            Section("📶 無線 Sidecar (擺脫線材、自由移動)") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("無線模式對設備環境要求較高，請務必確認以下三點：")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                    
+                    ManualRow(title: "1. 帳號與通訊",
+                              icon: "person.crop.circle.badge.checkmark",
+                              content: "iPad 與 Mac 必須登入「同一個 Apple ID」，且兩端皆須開啟「藍牙」與「Wi-Fi」。")
+                    
+                    ManualRow(title: "2. 接力功能 (Handoff)",
+                              icon: "arrow.right.circle.fill",
+                              content: "請在兩端系統設定中確認「接力 (Handoff)」功能已開啟。這是無線投影的核心。")
+                    
+                    ManualRow(title: "3. 距離與頻段",
+                              icon: "wifi",
+                              content: "設備距離請保持在 10 公尺內，且建議連接至相同的 5GHz Wi-Fi 以獲得最佳流暢度。")
+                }
             }
 
-            Section("📺 全螢幕優化 (Full-Screen Optimization)") {
-                ManualRow(title: "第一步：隱藏 Sidecar 工具列",
-                          icon: "menubar.rectangle",
-                          content: "在 Mac 前往「系統設定 > 顯示器 > Sidecar 設置 (點選 iPad)」，關閉『顯示側邊欄 (Show Sidebar)』與『顯示觸控列 (Show Touch Bar)』。這能移除 iPad 兩側與底部的黑邊。")
+            Section("🌐 Tailscale：您的專屬虛擬隧道") {
+                ManualRow(title: "第一步：下載與註冊",
+                          icon: "arrow.down.circle.fill",
+                          content: "• Mac：至 tailscale.com 下載安裝檔案。\n• iPad：於 App Store 搜尋「Tailscale」下載。\n• 註冊：點擊「Login」，建議選 Google 或 Apple 直接登入。")
                 
-                ManualRow(title: "第二步：解決比例不合黑邊",
-                          icon: "arrow.up.left.and.arrow.down.right",
-                          content: "由於 iPad 螢幕比例 (4:3) 與 Mac (16:10) 不同，可能會有上下黑邊。本 App 已整合 BetterDisplay，建議透過其 API 建立一個與 iPad 解析度一致的「虛擬顯示器」，並將其鏡像至 iPad 即可達成完美全螢幕。")
+                ManualRow(title: "第二步：取得 VPN IP",
+                          icon: "magnifyingglass.circle.fill",
+                          content: "兩台設備皆登入後，點擊 Mac 選單列上的 Tailscale 小圖示。找到以「100.」開頭的一串數字（例如 100.81.2.3），這就是 Mac 的虛擬身分證字號。")
+                
+                ManualRow(title: "第三步：填入設定",
+                          icon: "square.and.pencil",
+                          content: "回到本 App 的「設定連線參數」，在「Hostname / IP」處刪除原本的文字，改填入剛才取得的「100.xxx.xxx.xxx」。")
             }
 
-            Section("🖋️ Apple Pencil 進階操作 (Advanced Interaction)") {
-                ManualRow(title: "精準操作映射",
-                          icon: "pencil.and.outline",
-                          content: "• 筆尖點擊：等同於滑鼠左鍵。\n• 筆尖拖曳：等同於按住滑鼠左鍵（可用於拖視窗或選取文字）。\n• 懸浮感應：若 iPad 支援，靠近螢幕可連動 Mac 鼠標移位。")
+            Section("📺 BetterDisplay：全螢幕與控制橋樑") {
+                ManualRow(title: "第一步：安裝與權限",
+                          icon: "display",
+                          content: "至 betterdisplay.pro 下載並安裝。啟動後若系統詢問權限，請務必點選「允許」。")
                 
-                ManualRow(title: "如何捲動視窗？",
-                          icon: "scroll.fill",
-                          content: "Apple Pencil 本身不支援手勢捲動。請直接使用筆尖「拖曳視窗右側的捲動軸」，或使用極力推薦的「指筆並用」法。")
+                ManualRow(title: "第二步：開啟控制開關 (重要！)",
+                          icon: "bolt.horizontal.circle.fill",
+                          content: "在 Mac BetterDisplay 設定中，點擊「Settings > Advanced」，向下捲動找到「Enable HTTP API」並勾選它。沒有這一步，App 就無法控制 Mac。")
                 
-                ManualRow(title: "指筆並用：效率最高",
-                          icon: "hand.tap.fill",
-                          content: "💡 這是 Sidecar 的隱藏技巧：左手手指直接滑動螢幕來「捲動畫面」，右手持 Apple Pencil 負責「精準點擊與操作」。這比單用任何一種工具都快。")
+                ManualRow(title: "第三步：新增虛擬顯示器 (Dummy)",
+                          icon: "plus.square.fill",
+                          content: "1. 點擊「Settings > Displays」。\n2. 點擊「Create New Virtual Screen (Dummy)」。\n3. 建議選擇 2048x1536 (iPad 比例)。\n4. 建立後，將此虛擬器「鏡像 (Mirror)」至您的 iPad。這能完美解決上下黑邊問題。")
+            }
+
+            Section("❓ 常見問題白話文") {
+                ManualRow(title: "為什麼要用這兩個 App？",
+                          icon: "questionmark.circle",
+                          content: "Tailscale 負責「挖地道」讓連線穿過牆；BetterDisplay 則是「導遊」，負責把 Mac 的畫面正確打包並送上地道。")
+                
+                ManualRow(title: "Hostname 是什麼？",
+                          icon: "character",
+                          content: "就是 Mac 的門牌號碼。在家用「Mac的名字.local」，在外遠距請一定要用「Tailscale 的 IP」。")
             }
         }
         .navigationTitle("使用者操作手冊")
