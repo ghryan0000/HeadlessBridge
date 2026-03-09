@@ -620,10 +620,9 @@ struct ConnectionDiagnosticSection: View {
                     Spacer()
                     
                     Image(systemName: "chevron.up.chevron.down")
-                        .font(.caption.bold())
+                        .font(.system(size: 16, weight: .bold))
                         .foregroundStyle(.secondary)
-                        .scaleEffect(0.8) // Reduced scale to 0.8x
-                        .padding(.trailing, 30) // Adjusted trailing padding to ~1.0cm
+                        .padding(.trailing, 16) // Balanced trailing padding
                         .rotationEffect(.degrees(isExpanded ? 180 : 0))
                 }
                 .contentShape(Rectangle())

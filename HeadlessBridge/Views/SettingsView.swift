@@ -76,16 +76,17 @@ struct SettingsView: View {
                             } label: {
                                 HStack {
                                     Image(systemName: showSaved ? "checkmark" : "square.and.arrow.down")
+                                        .font(.system(size: 16, weight: .bold))
                                     Text(showSaved ? "已儲存" : "儲存設定")
                                 }
-                                .font(.system(size: 13, weight: .bold)) // Slightly smaller font for balance
+                                .font(.system(size: 16, weight: .bold)) // Increased from 13pt (~20%+)
                                 .foregroundStyle(.white)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 7)
+                                .padding(.horizontal, 18)
+                                .padding(.vertical, 10)
                                 .background(
                                     Capsule()
                                         .fill(showSaved ? .green : Theme.musicRed)
-                                        .shadow(color: (showSaved ? Color.green : Theme.musicRed).opacity(0.2), radius: 4, x: 0, y: 2)
+                                        .shadow(color: (showSaved ? Color.green : Theme.musicRed).opacity(0.2), radius: 5, x: 0, y: 3)
                                 )
                             }
                             .buttonStyle(.plain)
@@ -96,16 +97,17 @@ struct SettingsView: View {
                             } label: {
                                 HStack {
                                     Image(systemName: "trash")
+                                        .font(.system(size: 16, weight: .bold))
                                     Text("重置")
                                 }
-                                .font(.system(size: 13, weight: .bold))
+                                .font(.system(size: 16, weight: .bold)) // Increased from 13pt
                                 .foregroundStyle(.primary.opacity(0.7))
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 7)
+                                .padding(.horizontal, 18)
+                                .padding(.vertical, 10)
                                 .background(
                                     Capsule()
                                         .fill(Color(.systemGray5))
-                                        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                                        .shadow(color: .black.opacity(0.05), radius: 3, x: 0, y: 2)
                                 )
                             }
                             .buttonStyle(.plain)
@@ -206,80 +208,61 @@ struct SettingsView: View {
                         }
                         .listRowInsets(EdgeInsets(top: -7, leading: 20, bottom: -7, trailing: 20)) // Extreme slim background
                         
-                        // iPad UUID：必要，整合區塊
-                        VStack(alignment: .leading, spacing: 8) { // Increased spacing for comfort
-                            // 第一列：必要 badge + 標題 + ? 圖示
-                            HStack(spacing: 4) {
-                                Text("必要")
-                                    .font(.system(size: 9, weight: .semibold))
-                                    .foregroundStyle(Theme.musicRed)
-                                    .padding(.horizontal, 5)
-                                    .padding(.vertical, 2)
-                                    .background(Capsule().fill(Theme.musicRed.opacity(0.15)))
-                                Text("iPad UUID")
-                                    .foregroundStyle(Theme.musicRed)
-                                
-                                Button { showHelp = .uuid } label: {
-                                    Image(systemName: "questionmark.circle")
-                                        .foregroundStyle(.blue)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                            
-                            // 第二列：[膠囊按鈕] + [UUID 輸入框] 同一行
-                            HStack(spacing: 10) {
+                        // iPad UUID：必要，單行整合
+                        InlineHintRow(
+                            label: "iPad UUID",
+                            isRequired: true,
+                            helpAction: { showHelp = .uuid }
+                        ) {
+                            HStack(spacing: 8) {
                                 Button {
                                     Task { await fetchUUID() }
                                 } label: {
-                                    HStack(spacing: 5) {
+                                    HStack(spacing: 4) {
                                         if isFetchingUUID {
                                             ProgressView()
                                                 .controlSize(.small)
-                                                .tint(.white)
+                                                .tint(.blue)
                                         } else {
                                             Image(systemName: "arrow.down.circle.fill")
                                         }
-                                        Text(isFetchingUUID ? "取得中..." : "從 SSH 自動取得 UUID")
-                                            .font(.system(size: 11, weight: .bold)) // Smaller font for compactness
-                                            .fontWeight(.medium)
+                                        Text(isFetchingUUID ? "取得中..." : "自動取得")
+                                            .font(.system(size: 10, weight: .bold))
                                     }
-                                    .font(.subheadline)
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(.blue)
                                     .padding(.horizontal, 10)
-                                    .padding(.vertical, 10) // Increased for visibility
+                                    .padding(.vertical, 6)
                                     .background(
                                         Capsule()
-                                            .fill(Theme.musicRed)
-                                            .shadow(color: Theme.musicRed.opacity(isFetchingUUID ? 0 : 0.3),
-                                                    radius: 6, x: 0, y: 3)
+                                            .fill(Color.blue.opacity(0.12))
+                                            .shadow(color: Color.blue.opacity(isFetchingUUID ? 0 : 0.1), radius: 2, x: 0, y: 1)
                                     )
                                 }
                                 .buttonStyle(.plain)
                                 .disabled(isFetchingUUID)
-                                .fixedSize() // 按鈕不被壓縮
+                                .fixedSize()
                                 
-                                TextField("UUID 代碼",
-                                          text: $draftConfig.iPadUUID)
+                                TextField("UUID", text: $draftConfig.iPadUUID)
                                     .multilineTextAlignment(.trailing)
-                                    .autocorrectionDisabled()
+                                    .font(.system(size: 13, design: .monospaced))
+                                    .frame(minWidth: 150)
+                                    .padding(.vertical, 10) // Increased height
+                                    .padding(.horizontal, 12)
+                                    .background(RoundedRectangle(cornerRadius: 8).fill(Color(.systemGray6)))
                                     .textInputAutocapitalization(.never)
-                                    .font(.system(size: 11, design: .monospaced)) // Smaller text
-                                    .padding(.vertical, 10) // Increased for visibility
-                                    .padding(.horizontal, 10)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .fill(Color(.systemGray6))
-                                    )
-                            }
-                            
-                            if let error = fetchUUIDError {
-                                Text(error)
-                                    .font(.caption)
-                                    .foregroundStyle(.red)
+                                    .autocorrectionDisabled()
                             }
                         }
-                        .padding(.vertical, 8) // Comfort height to prevent clipping
-                        .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20)) // Use 0 to prevent clipping
+                        .listRowInsets(EdgeInsets(top: -7, leading: 20, bottom: -7, trailing: 20))
+                        
+                        if let error = fetchUUIDError {
+                            Text(error)
+                                .font(.system(size: 10))
+                                .foregroundStyle(.red)
+                                .padding(.leading, 80) // Align roughly with content
+                                .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 4, trailing: 20))
+                                .listRowBackground(Color.clear)
+                        }
                     }
                     
                     // MARK: 遠距連線設定

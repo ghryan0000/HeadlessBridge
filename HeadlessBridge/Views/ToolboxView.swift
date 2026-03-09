@@ -7,24 +7,24 @@ struct ToolboxView: View {
             List {
                 Section(header: Text("通用工具")) {
                     NavigationLink {
-                        HistoryView()
+                        UserManualView()
                     } label: {
                         Label {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("連線記錄")
+                                Text("使用者操作手冊")
                                     .font(.headline)
-                                Text("查看過去的連線紀錄與統計數據")
+                                Text("詳細的操作步驟及技術名詞說明")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
                         } icon: {
-                            Image(systemName: "clock.arrow.circlepath")
-                                .foregroundStyle(.blue)
+                            Image(systemName: "book.fill")
+                                .foregroundStyle(.green)
                                 .font(.title3)
                         }
                     }
                     .padding(.vertical, 4)
-                    
+
                     NavigationLink {
                         TroubleshootingDetailsView()
                     } label: {
@@ -43,21 +43,21 @@ struct ToolboxView: View {
                         }
                     }
                     .padding(.vertical, 4)
-                    
+
                     NavigationLink {
-                        UserManualView()
+                        HistoryView()
                     } label: {
                         Label {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("使用者操作手冊")
+                                Text("連線記錄")
                                     .font(.headline)
-                                Text("詳細的操作步驟及技術名詞說明")
+                                Text("查看過去的連線紀錄與統計數據")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
                         } icon: {
-                            Image(systemName: "book.fill")
-                                .foregroundStyle(.green)
+                            Image(systemName: "clock.arrow.circlepath")
+                                .foregroundStyle(.blue)
                                 .font(.title3)
                         }
                     }
