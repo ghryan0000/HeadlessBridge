@@ -4,15 +4,13 @@ import SwiftUI
 /// isRequired: true = 紅色「必要」badge，false = 灰色「選填」badge
 struct InlineHintRow<Content: View>: View {
     let label: String
-    let hint: String
     let isRequired: Bool
-    let helpAction: (() -> Void)?
+    let helpAction: () -> Void
     let content: Content
 
-    init(label: String, hint: String, isRequired: Bool = true,
-         helpAction: (() -> Void)? = nil, @ViewBuilder content: () -> Content) {
+    init(label: String, isRequired: Bool = true,
+         helpAction: @escaping () -> Void, @ViewBuilder content: () -> Content) {
         self.label = label
-        self.hint = hint
         self.isRequired = isRequired
         self.helpAction = helpAction
         self.content = content()
@@ -27,29 +25,27 @@ struct InlineHintRow<Content: View>: View {
                 .padding(.horizontal, 5)
                 .padding(.vertical, 2)
                 .background(Capsule().fill(isRequired ? Theme.musicRed.opacity(0.15) : Color.secondary.opacity(0.15)))
+            
             Text(label)
                 .foregroundStyle(Theme.musicRed)
-            Text(hint)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-            if let action = helpAction {
-                Button(action: action) {
-                    Image(systemName: "questionmark.circle")
-                        .foregroundStyle(.blue)
-                }
-                .buttonStyle(.plain)
+            
+            Button(action: helpAction) {
+                Image(systemName: "questionmark.circle")
+                    .foregroundStyle(.blue)
             }
+            .buttonStyle(.plain)
+            
             Spacer()
             content
         }
+        .padding(.vertical, 3) // Ultra-slim internal padding
     }
 }
 
 // MARK: - Settings View
 struct SettingsView: View {
     @EnvironmentObject var manager: ConnectionManager
+    @Binding var columnVisibility: NavigationSplitViewVisibility
     @State private var draftConfig = MacConfig.default
     @State private var sshPassword: String = ""
     @State private var originalPassword: String = ""
@@ -63,7 +59,7 @@ struct SettingsView: View {
     private let keychain = KeychainService.shared
     
     enum HelpType: Identifiable {
-        case hostname, username, uuid
+        case hostname, username, sshPort, sshPassword, betterDisplayPort, uuid, tailscaleIP
         var id: Int { hashValue }
     }
     
@@ -71,12 +67,60 @@ struct SettingsView: View {
         NavigationStack {
             ZStack(alignment: .top) {
                 Form {
+                    // MARK: Floating Action Bar (Relocated to top of Form, left-aligned)
+                    Section {
+                        HStack(spacing: 12) {
+                            // Save Button
+                            Button {
+                                saveSettings()
+                            } label: {
+                                HStack {
+                                    Image(systemName: showSaved ? "checkmark" : "square.and.arrow.down")
+                                    Text(showSaved ? "已儲存" : "儲存設定")
+                                }
+                                .font(.system(size: 13, weight: .bold)) // Slightly smaller font for balance
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 7)
+                                .background(
+                                    Capsule()
+                                        .fill(showSaved ? .green : Theme.musicRed)
+                                        .shadow(color: (showSaved ? Color.green : Theme.musicRed).opacity(0.2), radius: 4, x: 0, y: 2)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            
+                            // Reset Button
+                            Button {
+                                showResetAlert = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "trash")
+                                    Text("重置")
+                                }
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(.primary.opacity(0.7))
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 7)
+                                .background(
+                                    Capsule()
+                                        .fill(Color(.systemGray5))
+                                        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            
+                            Spacer()
+                        }
+                    }
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: -25, leading: 20, bottom: -25, trailing: 20)) // Pulled content UP by 0.7cm (bottom: -5 -> -25)
+                    
                     // MARK: Mac 連線設定
                     Section("Mac 設定") {
                         // Hostname：必要
                         InlineHintRow(
                             label: "Hostname",
-                            hint: "💡 格式為「電腦名稱.local」，點 ? 看如何查詢",
                             isRequired: true,
                             helpAction: { showHelp = .hostname }
                         ) {
@@ -87,6 +131,7 @@ struct SettingsView: View {
                                 .keyboardType(.URL)
                                 .frame(maxWidth: 200)
                         }
+                        .listRowInsets(EdgeInsets(top: -7, leading: 20, bottom: -7, trailing: 20)) // Extreme slim background
                     }
                     
                     // MARK: SSH 設定
@@ -94,7 +139,6 @@ struct SettingsView: View {
                         // 使用者名稱：必要
                         InlineHintRow(
                             label: "使用者名稱",
-                            hint: "💡 在 Mac 終端機執行 whoami 取得",
                             isRequired: true,
                             helpAction: { showHelp = .username }
                         ) {
@@ -104,24 +148,26 @@ struct SettingsView: View {
                                 .textInputAutocapitalization(.never)
                                 .frame(maxWidth: 200)
                         }
+                        .listRowInsets(EdgeInsets(top: -7, leading: 20, bottom: -7, trailing: 20)) // Extreme slim background
                         
                         // Port：必要
                         InlineHintRow(
                             label: "Port",
-                            hint: "💡 SSH 預設為 22，未修改過可保持不變",
-                            isRequired: true
+                            isRequired: true,
+                            helpAction: { showHelp = .sshPort }
                         ) {
                             TextField("例如: 22", value: $draftConfig.sshPort, format: .number.grouping(.never))
                                 .multilineTextAlignment(.trailing)
                                 .keyboardType(.asciiCapableNumberPad)
                                 .frame(maxWidth: 80)
                         }
+                        .listRowInsets(EdgeInsets(top: -7, leading: 20, bottom: -7, trailing: 20)) // Extreme slim background
                         
                         // SSH 密碼：必要
                         InlineHintRow(
                             label: "SSH 密碼",
-                            hint: "💡 即 Mac 的系統登入密碼",
-                            isRequired: true
+                            isRequired: true,
+                            helpAction: { showHelp = .sshPassword }
                         ) {
                             HStack(spacing: 6) {
                                 Group {
@@ -142,6 +188,7 @@ struct SettingsView: View {
                                 }
                             }
                         }
+                        .listRowInsets(EdgeInsets(top: -7, leading: 20, bottom: -7, trailing: 20)) // Extreme slim background
                     }
                     
                     // MARK: BetterDisplay 設定
@@ -149,18 +196,19 @@ struct SettingsView: View {
                         // HTTP Port：必要
                         InlineHintRow(
                             label: "HTTP Port",
-                            hint: "💡 開啟 BetterDisplay > 偏好設定 > API，查看 HTTP Port",
-                            isRequired: true
+                            isRequired: true,
+                            helpAction: { showHelp = .betterDisplayPort }
                         ) {
                             TextField("例如: 55777", value: $draftConfig.betterDisplayPort, format: .number.grouping(.never))
                                 .multilineTextAlignment(.trailing)
                                 .keyboardType(.asciiCapableNumberPad)
                                 .frame(maxWidth: 80)
                         }
+                        .listRowInsets(EdgeInsets(top: -7, leading: 20, bottom: -7, trailing: 20)) // Extreme slim background
                         
                         // iPad UUID：必要，整合區塊
-                        VStack(alignment: .leading, spacing: 8) {
-                            // 第一列：必要 badge + 標題 + hint + ? 圖示
+                        VStack(alignment: .leading, spacing: 8) { // Increased spacing for comfort
+                            // 第一列：必要 badge + 標題 + ? 圖示
                             HStack(spacing: 4) {
                                 Text("必要")
                                     .font(.system(size: 9, weight: .semibold))
@@ -170,11 +218,7 @@ struct SettingsView: View {
                                     .background(Capsule().fill(Theme.musicRed.opacity(0.15)))
                                 Text("iPad UUID")
                                     .foregroundStyle(Theme.musicRed)
-                                Text("💡 點下方按鈕自動取得，或點 ? 查看手動方式")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.8)
+                                
                                 Button { showHelp = .uuid } label: {
                                     Image(systemName: "questionmark.circle")
                                         .foregroundStyle(.blue)
@@ -196,15 +240,16 @@ struct SettingsView: View {
                                             Image(systemName: "arrow.down.circle.fill")
                                         }
                                         Text(isFetchingUUID ? "取得中..." : "從 SSH 自動取得 UUID")
+                                            .font(.system(size: 11, weight: .bold)) // Smaller font for compactness
                                             .fontWeight(.medium)
                                     }
                                     .font(.subheadline)
                                     .foregroundStyle(.white)
-                                    .padding(.horizontal, 14)
-                                    .padding(.vertical, 7)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 10) // Increased for visibility
                                     .background(
                                         Capsule()
-                                            .fill(isFetchingUUID ? Color.gray : Theme.musicRed)
+                                            .fill(Theme.musicRed)
                                             .shadow(color: Theme.musicRed.opacity(isFetchingUUID ? 0 : 0.3),
                                                     radius: 6, x: 0, y: 3)
                                     )
@@ -213,13 +258,13 @@ struct SettingsView: View {
                                 .disabled(isFetchingUUID)
                                 .fixedSize() // 按鈕不被壓縮
                                 
-                                TextField("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+                                TextField("UUID 代碼",
                                           text: $draftConfig.iPadUUID)
                                     .multilineTextAlignment(.trailing)
                                     .autocorrectionDisabled()
                                     .textInputAutocapitalization(.never)
-                                    .font(.caption.monospaced())
-                                    .padding(.vertical, 7)
+                                    .font(.system(size: 11, design: .monospaced)) // Smaller text
+                                    .padding(.vertical, 10) // Increased for visibility
                                     .padding(.horizontal, 10)
                                     .background(
                                         RoundedRectangle(cornerRadius: 8)
@@ -233,15 +278,17 @@ struct SettingsView: View {
                                     .foregroundStyle(.red)
                             }
                         }
+                        .padding(.vertical, 8) // Comfort height to prevent clipping
+                        .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20)) // Use 0 to prevent clipping
                     }
                     
-                    // MARK: Tailscale 遠距連線（選填）
+                    // MARK: 遠距連線設定
                     Section("遠距連線設定") {
-                        // Tailscale IP：選填，僅外部網路遠端連線時需要
+                        // Tailscale IP：選填
                         InlineHintRow(
                             label: "Tailscale IP",
-                            hint: "💡 在 Mac 終端機執行 tailscale ip 取得",
-                            isRequired: false
+                            isRequired: false,
+                            helpAction: { showHelp = .tailscaleIP }
                         ) {
                             TextField("例如: 100.x.x.x", text: $draftConfig.tailscaleIP)
                                 .multilineTextAlignment(.trailing)
@@ -250,6 +297,7 @@ struct SettingsView: View {
                                 .keyboardType(.numbersAndPunctuation)
                                 .frame(maxWidth: 160)
                         }
+                        .listRowInsets(EdgeInsets(top: -7, leading: 20, bottom: -7, trailing: 20)) // Extreme slim background
                     }
                     
                     // Add padding to prevent the last content being obscured by potential tab bar or safe area
@@ -258,65 +306,6 @@ struct SettingsView: View {
                         .listRowSeparator(.hidden)
                 }
                 .scrollDismissesKeyboard(.immediately)
-                .safeAreaInset(edge: .top) {
-                    Color.clear.frame(height: 70) // Match floating bar container height
-                }
-                
-                // MARK: Floating Action Bar
-                HStack(spacing: 20) {
-                    // Save Button
-                    Button {
-                        saveSettings()
-                    } label: {
-                        HStack {
-                            Image(systemName: showSaved ? "checkmark" : "square.and.arrow.down")
-                            Text(showSaved ? "已儲存" : "儲存設定")
-                        }
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .background(
-                            Capsule()
-                                .fill(showSaved ? .green : Theme.musicRed)
-                                .shadow(color: (showSaved ? Color.green : Theme.musicRed).opacity(0.3), radius: 8, x: 0, y: 4)
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    
-                    // Reset Button
-                    Button {
-                        showResetAlert = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "trash")
-                            Text("重置")
-                        }
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(.primary.opacity(0.8))
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .background(
-                            Capsule()
-                                .fill(Color(.systemGray5))
-                                .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                .background(
-                    Capsule()
-                        .fill(.ultraThinMaterial)
-                        .overlay(
-                            Capsule()
-                                .stroke(.white.opacity(0.3), lineWidth: 0.5)
-                        )
-                        .shadow(color: .black.opacity(0.1), radius: 15, x: 0, y: 8)
-                )
-                .padding(.top, 10)
-                .transition(.move(edge: .top).combined(with: .opacity))
             }
             .alert("確定要清除所有設定嗎？", isPresented: $showResetAlert) {
                 Button("取消", role: .cancel) { }
@@ -464,14 +453,26 @@ struct HelpSheet: View {
                 VStack(alignment: .leading, spacing: 20) {
                     switch type {
                     case .hostname:
-                        HelpContent(title: "Hostname 是什麼？如何查詢？",
-                                    content: "這是你的 Mac 在區域網路上的識別位址，格式固定為「電腦名稱.local」。\n\n【查詢步驟】\n1. 前往「系統設定 > 一般 > 共享」\n2. 視窗最上方的「電腦名稱」即是你的設備名稱\n3. 在 Hostname 欄填入「電腦名稱.local」\n\n【常見範例】\n• Mac mini → Mac-mini.local\n• MacBook Pro → MacBook-Pro.local\n• iMac → iMac.local\n\n【為什麼用 .local？】\n.local 是 Apple Bonjour 的自動尋址機制，不需要設定固定 IP，只要兩台設備在同一個 Wi-Fi 或有線網路內，就能自動找到對方。")
+                        HelpContent(title: "Hostname 是什麼？",
+                                    content: "這是你的 Mac 在區域網路上的識別位址，格式固定為「電腦名稱.local」。\n\n【查詢步驟】\n1. 前往「系統設定 > 一般 > 共享」\n2. 視窗最上方的「電腦名稱」即是你的設備名稱\n3. 在 Hostname 欄填入「電腦名稱.local」\n\n【常見範例】\n• Mac mini → Mac-mini.local\n• MacBook Pro → MacBook-Pro.local")
                     case .username:
                         HelpContent(title: "如何找到使用者名稱？",
-                                    content: "這不是你的全名 (例如: Ryan Chang)，而是系統的「帳號名稱」短名稱 (例如: ryanchang)。\n\n【最推薦方法】\n在 Mac 的終端機執行 `whoami`，回傳的小寫文字即是正確的名稱。\n\n【系統設定查看】\n1. 前往「系統設定 > 使用者與群組」。\n2. 在你的帳號名字上「按右鍵」或「按住 Control 鍵再點擊」。\n3. 選擇「進階選項...」。\n4. 視窗中的『帳號名稱』一欄才是正確的（注意：視窗頂端的『使用者名稱』通常是全名，並非 SSH 所需）。")
+                                    content: "這不是你的全名 (例如: Ryan Chang)，而是系統的「帳號名稱」短名稱 (例如: ryanchang)。\n\n【查詢方法】\n在 Mac 的終端機執行 `whoami`，回傳的小寫文字即是正確的名稱。")
+                    case .sshPort:
+                        HelpContent(title: "SSH Port 是什麼？",
+                                    content: "這是 SSH 連線所使用的通訊埠。\n\n【說明】\n• 預設值為 22。\n• 若你未曾在 Mac 上修改過 SSH 設定，請保持 22 即可。")
+                    case .sshPassword:
+                        HelpContent(title: "SSH 密碼是什麼？",
+                                    content: "這是你的 Mac 登入密碼。\n\n【說明】\n• 即是你平時喚醒 Mac 或安裝軟體時輸入的系統密碼。")
+                    case .betterDisplayPort:
+                        HelpContent(title: "BetterDisplay HTTP Port",
+                                    content: "這是 BetterDisplay 提供 API 控制所需的通訊埠。\n\n【查詢路徑】\n1. 打開 BetterDisplay 選單。\n2. 前往「偏好設定 > API」。\n3. 查看畫面中的 HTTP Port 數值（預設通常為 55777）。")
                     case .uuid:
                         HelpContent(title: "iPad UUID 是什麼？",
-                                    content: "這是 Sidecar 辨識這台 iPad 的身分證字號。第一次設定的使用者，請務必先完成以下步驟：\n\n【第一步：建立信任紀錄】\n1. 使用 **USB 線** 將 iPad 連接至 Mac。\n2. 在 iPad 上點選「信任這部電腦」，並在 Mac 上點選「允許」。\n3. 在 Mac 的「系統設定 > 顯示器」點選『+』並嘗試啟動一次 Sidecar。只要成功啟動一次，系統就會留下紀錄。\n\n【如何手動獲取？】\n若自動取得失敗，請在 Mac 終端機執行：\n`system_profiler SPUSBDataType | grep -A 10 \"iPad\" | grep \"Serial Number\"` \n回傳的一長串代碼即是 UUID。\n\n💡 常見失敗原因：\n• 未曾用線連接過 Mac (無信任紀錄)\n• 兩台設備登入的是不同的 Apple ID\n• iPad 的「接續互通 (Handoff)」功能未開啟")
+                                    content: "這是 Sidecar 辨識這台 iPad 的唯一 ID。\n\n【如何獲取？】\n• 推薦：點擊下方的「從 SSH 自動取得 UUID」按鈕。\n• 手動：請參考 Toolbox 內的詳細手動查詢方式。")
+                    case .tailscaleIP:
+                        HelpContent(title: "Tailscale IP 是什麼？",
+                                    content: "這是用於遠距連線（不在同一個 Wi-Fi 下）的虛擬 IP。\n\n【查詢方法】\n1. 在 Mac 終端機執行 `tailscale ip`。\n2. 或在 Mac 的選單列點擊 Tailscale 圖示查看。")
                     }
                     
                     Spacer()

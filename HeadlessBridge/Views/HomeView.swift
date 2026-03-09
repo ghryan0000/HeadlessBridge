@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - Home View
 struct HomeView: View {
     @EnvironmentObject var manager: ConnectionManager
+    @Binding var columnVisibility: NavigationSplitViewVisibility
     @Namespace private var animation
     
     var body: some View {
@@ -599,16 +600,16 @@ struct ConnectionDiagnosticSection: View {
                 }
             } label: {
                 HStack {
+                    Image(systemName: manager.isRunningDiagnostic ? "arrow.clockwise.circle.fill" : "magnifyingglass.circle.fill")
+                        .font(.title)
+                        .foregroundStyle(Theme.musicRed)
+                        .padding(.leading, 14) // Add 0.5cm (approx 14pt) leading padding
+                        .rotationEffect(.degrees(manager.isRunningDiagnostic ? 360 : 0))
+                        .animation(manager.isRunningDiagnostic ? .linear(duration: 1.0).repeatForever(autoreverses: false) : .default, value: manager.isRunningDiagnostic)
+                    
                     Text("連線狀態診斷")
                         .font(.subheadline.bold())
                         .foregroundStyle(Color(white: 0.3))
-                        .padding(.leading, 12) // Indent by about one character width
-                    
-                    Image(systemName: manager.isRunningDiagnostic ? "arrow.clockwise.circle.fill" : "magnifyingglass.circle.fill")
-                        .font(.title) // 加大 1 倍 (由 title2 -> title)
-                        .foregroundStyle(Theme.musicRed)
-                        .rotationEffect(.degrees(manager.isRunningDiagnostic ? 360 : 0))
-                        .animation(manager.isRunningDiagnostic ? .linear(duration: 1.0).repeatForever(autoreverses: false) : .default, value: manager.isRunningDiagnostic)
                     
                     if isRefreshing || manager.isRunningDiagnostic {
                         ProgressView()
@@ -621,6 +622,8 @@ struct ConnectionDiagnosticSection: View {
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.caption.bold())
                         .foregroundStyle(.secondary)
+                        .scaleEffect(0.8) // Reduced scale to 0.8x
+                        .padding(.trailing, 30) // Adjusted trailing padding to ~1.0cm
                         .rotationEffect(.degrees(isExpanded ? 180 : 0))
                 }
                 .contentShape(Rectangle())
@@ -649,8 +652,8 @@ struct ConnectionDiagnosticSection: View {
                                 }
                             } label: {
                                 Image(systemName: "arrow.clockwise.circle.fill")
-                                    .font(.title) // 加大 1 倍
-                                    .foregroundStyle(Theme.musicRed) // 改為藍色以統一風格
+                                    .font(.title)
+                                    .foregroundStyle(.blue) // Changed to blue
                                     .rotationEffect(.degrees(isRefreshing ? 360 : 0))
                                     .animation(isRefreshing ? .linear(duration: 0.8).repeatForever(autoreverses: false) : .default, value: isRefreshing)
                             }

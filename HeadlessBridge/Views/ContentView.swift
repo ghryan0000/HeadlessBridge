@@ -23,11 +23,11 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     }
     
     @ViewBuilder
-    func destination(for item: SidebarItem, sidebarSelection: Binding<SidebarItem?>, tabSelection: Binding<SidebarItem>) -> some View {
+    func destination(for item: SidebarItem, sidebarSelection: Binding<SidebarItem?>, tabSelection: Binding<SidebarItem>, columnVisibility: Binding<NavigationSplitViewVisibility>) -> some View {
         switch item {
-        case .home: HomeView()
-        case .settings: SettingsView()
-        case .toolbox: ToolboxView()
+        case .home: HomeView(columnVisibility: columnVisibility)
+        case .settings: SettingsView(columnVisibility: columnVisibility)
+        case .toolbox: ToolboxView(columnVisibility: columnVisibility)
         }
     }
 }
@@ -86,50 +86,46 @@ struct ContentView: View {
                     SidebarContent(selectedItem: sidebarBinding, columnVisibility: $columnVisibility)
                         .navigationSplitViewColumnWidth(min: 250, ideal: 280, max: 350)
                 } detail: {
-                    ZStack(alignment: .top) {
-                        if let item = selectedSidebarItem {
-                            item.destination(for: item, sidebarSelection: $selectedSidebarItem, tabSelection: $selectedTab)
-                                .safeAreaInset(edge: .top) {
-                                    Color.clear.frame(height: columnVisibility == .detailOnly ? 140 : 20)
-                                }
-                                .ignoresSafeArea(.container, edges: .top)
-                        } else {
-                            Text("請從側邊欄選擇功能")
-                                .foregroundStyle(.secondary)
-                        }
-                        
-                        // Apple Podcasts Style Centered Navigation Pill (Only shows when sidebar is hidden)
-                        if columnVisibility == .detailOnly {
-                            HStack {
-                                Spacer()
-                                NavigationPill(
-                                    selectedItem: Binding(
-                                        get: { selectedSidebarItem ?? .home },
-                                        set: { newValue in
-                                            guard newValue != selectedSidebarItem else { return }
-                                            if manager.hasUnsavedChanges {
-                                                intendedDestination = newValue
-                                                showUnsavedChangesAlert = true
-                                            } else {
-                                                selectedSidebarItem = newValue
-                                                selectedTab = newValue
-                                            }
-                                        }
-                                    ),
-                                    columnVisibility: $columnVisibility
-                                )
-                                Spacer()
+                    if let item = selectedSidebarItem {
+                        item.destination(for: item, sidebarSelection: $selectedSidebarItem, tabSelection: $selectedTab, columnVisibility: $columnVisibility)
+                            .safeAreaInset(edge: .top) {
+                                Color.clear.frame(height: columnVisibility == .detailOnly ? 106 : 20) // Pushed down by 1.1cm as requested
                             }
-                            .padding(.top, 0)
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                        }
+                            .ignoresSafeArea(.container, edges: .top)
+                            .toolbar(.hidden, for: .navigationBar) // Explicitly hide to reclaim space
+                    } else {
+                        Text("請從側邊欄選擇功能")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .overlay(alignment: .top) {
+                    // GLOBAL OVERLAY: Always captures touches, guaranteed interactivity
+                    if columnVisibility == .detailOnly {
+                        NavigationPill(
+                            selectedItem: Binding(
+                                get: { selectedSidebarItem ?? .home },
+                                set: { newValue in
+                                    guard newValue != selectedSidebarItem else { return }
+                                    if manager.hasUnsavedChanges {
+                                        intendedDestination = newValue
+                                        showUnsavedChangesAlert = true
+                                    } else {
+                                        selectedSidebarItem = newValue
+                                        selectedTab = newValue
+                                    }
+                                }
+                            ),
+                            columnVisibility: $columnVisibility
+                        )
+                        .padding(.top, 0) // Moved UP by 1cm as requested
+                        .transition(.move(edge: .top).combined(with: .opacity))
                     }
                 }
             } else {
                 // iPhone TabView Layout
                 TabView(selection: tabBinding) {
                     ForEach(SidebarItem.allCases) { item in
-                        item.destination(for: item, sidebarSelection: $selectedSidebarItem, tabSelection: $selectedTab)
+                        item.destination(for: item, sidebarSelection: $selectedSidebarItem, tabSelection: $selectedTab, columnVisibility: $columnVisibility)
                             .tabItem {
                                 Label(item.title, systemImage: item.icon)
                             }
@@ -227,8 +223,11 @@ struct NavigationPill: View {
     @Binding var selectedItem: SidebarItem
     @Binding var columnVisibility: NavigationSplitViewVisibility
     
+    // Scale tracking for selection burst
+    @State private var selectionScale: CGFloat = 1.0
+    
     var body: some View {
-        HStack(spacing: 15) {
+        HStack(spacing: 12) {
             // Sidebar Toggle (Only shows when sidebar is hidden)
             if columnVisibility == .detailOnly {
                 Button {
@@ -237,36 +236,73 @@ struct NavigationPill: View {
                     }
                 } label: {
                     Image(systemName: "sidebar.left")
-                        .font(.system(size: 20, weight: .regular))
-                        .foregroundStyle(Theme.musicRed) // Use Apple Music Red
+                        .font(.system(size: 16, weight: .regular))
+                        .scaleEffect(1.5) // Scale up as requested
+                        .foregroundStyle(Theme.musicRed)
                 }
-                .padding(.trailing, 10)
+                .buttonStyle(PillButtonStyle())
+                .padding(.trailing, 4)
             }
             
-            // Text-only Tabs
-            HStack(spacing: 20) {
+            // Vertical Icon + Text Tabs
+            HStack(spacing: 10) {
                 ForEach(SidebarItem.allCases) { item in
+                    let isSelected = selectedItem == item
+                    
                     Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            selectedItem = item
+                        if !isSelected {
+                            // 1.5x Scale Burst Animation
+                            selectionScale = 1.5
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.5)) {
+                                selectedItem = item
+                            }
+                            // Reset scale after short delay
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                                    selectionScale = 1.0
+                                }
+                            }
                         }
                     } label: {
-                        Text(item.title)
-                            .font(.system(size: 17, weight: .medium)) // Match sidebar font size
-                            .foregroundStyle(selectedItem == item ? Theme.musicRed : .black)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(selectedItem == item ? Color.gray.opacity(0.1) : Color.clear)
-                            )
+                        VStack(spacing: 3) { // Reduced from 4
+                            Image(systemName: item.icon)
+                                .font(.system(size: 18, weight: isSelected ? .bold : .medium)) // Reduced from 22 (approx 20%)
+                            
+                            Text(item.title)
+                                .font(.system(size: 12, weight: isSelected ? .bold : .medium))
+                        }
+                        .frame(minWidth: 90) // Ensure consistent width for vertical layout
+                        .padding(.vertical, 7) // Reduced from 10
+                        .foregroundStyle(isSelected ? Theme.musicRed : .primary.opacity(0.6))
+                        .background(
+                            ZStack {
+                                if isSelected {
+                                    Capsule()
+                                        .fill(Theme.musicRed.opacity(0.15))
+                                        .shadow(color: Theme.musicRed.opacity(0.25), radius: 6, x: 0, y: 3)
+                                }
+                            }
+                        )
                     }
+                    .buttonStyle(PillButtonStyle())
+                    .scaleEffect(isSelected ? selectionScale : 1.0)
                 }
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 6) // Reduced from 8
         .background(GlassPillBackground())
+    }
+}
+
+// MARK: - Pill Button Style (Handles intensified press animation)
+struct PillButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.90 : 1.0) // Slightly more shrink
+            .opacity(configuration.isPressed ? 0.6 : 1.0)     // Noticeable opacity change
+            .brightness(configuration.isPressed ? 0.3 : 0)    // Intensified brightness (0.1 -> 0.3)
+            .animation(.spring(response: 0.2, dampingFraction: 0.6), value: configuration.isPressed) // Snappier spring
     }
 }
 

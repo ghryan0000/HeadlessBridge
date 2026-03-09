@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ToolboxView: View {
+    @Binding var columnVisibility: NavigationSplitViewVisibility
     var body: some View {
         NavigationStack {
             List {
@@ -86,7 +87,7 @@ struct ToolboxView: View {
 }
 
 #Preview {
-    ToolboxView()
+    ToolboxView(columnVisibility: .constant(.all))
 }
 
 // MARK: - Troubleshooting Details View
@@ -160,6 +161,30 @@ struct UserManualView: View {
                 ManualRow(title: "關閉 VPN 是關鍵",
                           icon: "v_square.fill",
                           content: "VPN 會隱藏你的區域網路。如果你發現「診斷失敗」或「找不到 Mac」，請先暫時關閉 iPad 上的 VPN 再試一次。")
+            }
+
+            Section("📺 全螢幕優化 (Full-Screen Optimization)") {
+                ManualRow(title: "第一步：隱藏 Sidecar 工具列",
+                          icon: "menubar.rectangle",
+                          content: "在 Mac 前往「系統設定 > 顯示器 > Sidecar 設置 (點選 iPad)」，關閉『顯示側邊欄 (Show Sidebar)』與『顯示觸控列 (Show Touch Bar)』。這能移除 iPad 兩側與底部的黑邊。")
+                
+                ManualRow(title: "第二步：解決比例不合黑邊",
+                          icon: "arrow.up.left.and.arrow.down.right",
+                          content: "由於 iPad 螢幕比例 (4:3) 與 Mac (16:10) 不同，可能會有上下黑邊。本 App 已整合 BetterDisplay，建議透過其 API 建立一個與 iPad 解析度一致的「虛擬顯示器」，並將其鏡像至 iPad 即可達成完美全螢幕。")
+            }
+
+            Section("🖋️ Apple Pencil 進階操作 (Advanced Interaction)") {
+                ManualRow(title: "精準操作映射",
+                          icon: "pencil.and.outline",
+                          content: "• 筆尖點擊：等同於滑鼠左鍵。\n• 筆尖拖曳：等同於按住滑鼠左鍵（可用於拖視窗或選取文字）。\n• 懸浮感應：若 iPad 支援，靠近螢幕可連動 Mac 鼠標移位。")
+                
+                ManualRow(title: "如何捲動視窗？",
+                          icon: "scroll.fill",
+                          content: "Apple Pencil 本身不支援手勢捲動。請直接使用筆尖「拖曳視窗右側的捲動軸」，或使用極力推薦的「指筆並用」法。")
+                
+                ManualRow(title: "指筆並用：效率最高",
+                          icon: "hand.tap.fill",
+                          content: "💡 這是 Sidecar 的隱藏技巧：左手手指直接滑動螢幕來「捲動畫面」，右手持 Apple Pencil 負責「精準點擊與操作」。這比單用任何一種工具都快。")
             }
         }
         .navigationTitle("使用者操作手冊")
